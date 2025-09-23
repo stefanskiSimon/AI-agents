@@ -1,0 +1,523 @@
+{
+  "name": "TOOL - Append/Update/DeleteRows",
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "Spreadsheet ID"
+            },
+            {
+              "name": "Sheet name"
+            },
+            {
+              "name": "rowsJson"
+            },
+            {
+              "name": "IsUpdate?",
+              "type": "boolean"
+            },
+            {
+              "name": "IsDelete?",
+              "type": "boolean"
+            },
+            {
+              "name": "Row",
+              "type": "number"
+            },
+            {
+              "name": "NumberOfRowsToDelete",
+              "type": "number"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -48,
+        80
+      ],
+      "id": "01539831-9cb1-4a2b-8672-fac9679470ba",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "content": "## Subworkflow TOOL- Append/Update/DeleteRows\nThis workflow is a specific tool for google sheets operations. It allows to update, delete and append rows to google sheets, based on IDs, names and specific spreadsheet data too (I created this to not only experiment, but to automize the google sheets even more, so the model can decide on its own, which spreadsheet and sheet it has to use and get certain data instead of focusing only on one spreadsheet and sheet (so basically for automatic mapping)).\n\n## How it works?\nIt transfers the string data from main workflow into specific JSON format for google sheet append tool or update tool to use as data for new/updated rows. Then based on few boolean valuables it goes through switches which then leads to code node tool, that creates a certain required format to automaticly map data.",
+        "height": 608,
+        "width": 288
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -368,
+        -96
+      ],
+      "typeVersion": 1,
+      "id": "bb181ffe-ad99-4423-ba67-0a85db0846ca",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## Trigger input settings and switch to determine the action",
+        "height": 608,
+        "width": 480,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -80,
+        -96
+      ],
+      "typeVersion": 1,
+      "id": "c4f1c8c4-a84d-4893-960e-bd6f1f0c1e85",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $json.__sid }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "={{ $json.__sheet }}",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "handlingExtraData": "ignoreIt"
+        }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        832,
+        144
+      ],
+      "id": "0ea9df04-5b25-432c-9648-01a3fd3422fa",
+      "name": "Append row in sheet",
+      "alwaysOutputData": false,
+      "executeOnce": false,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "qBK79176GZTj00aZ",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $json.__sid }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "={{ $json.__sheet }}",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [
+            "row_number"
+          ],
+          "schema": [
+            {
+              "id": "Day",
+              "displayName": "Day",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "ToDo",
+              "displayName": "ToDo",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Done",
+              "displayName": "Done",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "handlingExtraData": "ignoreIt"
+        }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        832,
+        -32
+      ],
+      "id": "e2554256-583a-468b-95f6-1ae07b6f07da",
+      "name": "Update row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "qBK79176GZTj00aZ",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Code node\nconst sid = String($json[\"Spreadsheet ID\"] || '').trim();\nconst tab = String($json[\"Sheet name\"] || '').trim();\nconst rowNumber = Number($json[\"Row\"] || '');\nif (!sid || !tab || !rowNumber) throw new Error('spreadsheetId, sheetName, and row are required');\n\nconst raw = $json.rowsJson;\nif (typeof raw !== 'string') throw new Error('rowsString must be a JSON array string');\n\nlet arr;\ntry {\n    const parsed = JSON.parse(raw);\n    arr = Array.isArray(parsed) ? parsed : (Array.isArray(parsed.rows) ? parsed.rows : []);\n} catch (e) {\n    throw new Error('rowsString must be a valid JSON array string or {\"rows\":[...]}');\n}\nif (!Array.isArray(arr) || arr.length === 0) throw new Error('No rows to update');\n\n// Return single object instead of array for update operation\nreturn {\n    json: {\n        __sid: sid,\n        __sheet: tab,\n        row_number: rowNumber,\n        ...arr[0] // Take first item if array\n    }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        640,
+        -32
+      ],
+      "id": "fc534484-04d5-4bba-887e-3b253a99b076",
+      "name": "Update format"
+    },
+    {
+      "parameters": {
+        "jsCode": "const sid = String($json[\"Spreadsheet ID\"] || '').trim();\nconst tab = String($json[\"Sheet name\"] || '').trim();\nif (!sid || !tab) throw new Error('spreadsheetId and sheetName are required');\n\nconst raw = $json.rowsJson;\nif (typeof raw !== 'string') throw new Error('rowsString must be a JSON array string');\n\nlet arr;\ntry {\nconst parsed = JSON.parse(raw);\narr = Array.isArray(parsed) ? parsed : (Array.isArray(parsed.rows) ? parsed.rows : []);\n} catch (e) {\nthrow new Error('rowsString must be a valid JSON array string or {\"rows\":[...]}');\n}\nif (!Array.isArray(arr) || arr.length === 0) throw new Error('No rows to append');\n\n// IMPORTANT: top-level keys on each item must match headers. Keep sheet info too.\nreturn arr.map(r => ({ json: { __sid: sid, __sheet: tab, ...r } }));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        640,
+        144
+      ],
+      "id": "048b23d9-1a99-498f-84a3-53c17db8875e",
+      "name": "Append format"
+    },
+    {
+      "parameters": {
+        "content": "## Code tools for format and sheet tools",
+        "height": 608,
+        "width": 624,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        400,
+        -96
+      ],
+      "typeVersion": 1,
+      "id": "c1912368-9032-4730-a081-5ea3d08260cd",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Code node\nconst sid = String($json[\"Spreadsheet ID\"] || '').trim();\nconst tab = String($json[\"Sheet name\"] || '').trim();\nconst rowNumber = Number($json[\"Row\"] || '');\nconst numberOfRows = Number($json[\"NumberOfRowsToDelete\"] || '');\nif (!sid || !tab || !rowNumber) throw new Error('spreadsheetId, sheetName, and row are required');\n\nconst raw = $json.rowsJson;\nif (typeof raw !== 'string') throw new Error('rowsString must be a JSON array string');\n\nlet arr;\ntry {\n    const parsed = JSON.parse(raw);\n    arr = Array.isArray(parsed) ? parsed : (Array.isArray(parsed.rows) ? parsed.rows : []);\n} catch (e) {\n    throw new Error('rowsString must be a valid JSON array string or {\"rows\":[...]}');\n}\n\n// Return single object instead of array for update operation\nreturn {\n    json: {\n        __sid: sid,\n        __sheet: tab,\n        row_number: rowNumber,\n        numberOfRowsToDelete: numberOfRows,\n        ...arr[0] // Take first item if array\n    }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        640,
+        336
+      ],
+      "id": "18e9b9fc-781c-43b1-b3c8-d0e0ba16afd9",
+      "name": "Delete format"
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $json.__sid }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "={{ $json.__sheet }}",
+          "mode": "name"
+        },
+        "startIndex": "={{ $json.row_number }}",
+        "numberToDelete": "={{ $json.numberOfRowsToDelete }}"
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        832,
+        336
+      ],
+      "id": "0220bb66-1c4a-4db7-a7f2-0e2507377f2d",
+      "name": "Delete rows or columns",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "qBK79176GZTj00aZ",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json[\"IsUpdate?\"] }}",
+                    "rightValue": "TRUE",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    },
+                    "id": "a85e50f9-a922-4eb3-8cef-50a09132c997"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "4cf586a0-495c-4ed0-af6b-99007e6c8fd5",
+                    "leftValue": "={{ $json[\"IsUpdate?\"] }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "false",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        112,
+        80
+      ],
+      "id": "78bde903-1608-412f-9b58-a9dddf764d06",
+      "name": "IsUpdate?"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json[\"IsDelete?\"] }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "false",
+                      "singleValue": true
+                    },
+                    "id": "ff8c0e98-c004-405f-b8ed-1854d09d8d09"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "72225f30-8392-4508-a062-c0c72824330c",
+                    "leftValue": "={{ $json[\"IsDelete?\"] }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        272,
+        128
+      ],
+      "id": "36879f9c-6539-45fd-ac28-d9c66361f420",
+      "name": "IsDelete?"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "IsUpdate?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        []
+      ]
+    },
+    "Append format": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update format": {
+      "main": [
+        [
+          {
+            "node": "Update row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delete format": {
+      "main": [
+        [
+          {
+            "node": "Delete rows or columns",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IsUpdate?": {
+      "main": [
+        [
+          {
+            "node": "Update format",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "IsDelete?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IsDelete?": {
+      "main": [
+        [
+          {
+            "node": "Append format",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Delete format",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Europe/Warsaw",
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "versionId": "63e248a5-5025-4d73-819e-7330e1eff487",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "f1e8e899ff46369f9c32ee0519c314890a667daa91c593fcbd7438d3d8aac985"
+  },
+  "id": "FqhBpywKWyFrnhJJ",
+  "tags": [
+    {
+      "createdAt": "2025-09-17T18:46:54.761Z",
+      "updatedAt": "2025-09-17T18:46:54.761Z",
+      "id": "FDv1CigvsZnlhCPE",
+      "name": "Subworkflow"
+    }
+  ]
+}

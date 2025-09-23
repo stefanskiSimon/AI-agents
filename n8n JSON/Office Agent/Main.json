@@ -1,0 +1,1393 @@
+{
+  "name": "Main",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "# Office Agent - test\nThis is an AI office agent project allowing for efficient management of google calendars, documents, events, email, drive and Sheets. This is a test project for private and demonstration purposes (maybe soon for selling), based on the \"Efetywniejsi\" course with my own adjustment <3.\n This is a main workflow, with the AI agent and chat trigger. There are 4, beside main body (grey part), sections:\n - Calendar section\n - Gmail section\n - Google sheets section\n - Special tools section\n Inside of special tools section you can find additional subworkflows and code tools for better results and automatization.\n\n# How does it work?\nIt receives input from user using chat module, then based on the text it claryfies, if there is a file to upload (then it is extracted to binary data and convert to string to pass it later). Agent decides what to do and where to get additional data if needed.\n",
+        "height": 620,
+        "width": 472
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -496,
+        -544
+      ],
+      "id": "a7d9c4d9-e216-4e86-8060-7582a7c94355",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "public": true,
+        "authentication": "basicAuth",
+        "initialMessages": "Bonjour!,\nI'm your office assistant. How can I help?",
+        "options": {
+          "allowFileUploads": true,
+          "inputPlaceholder": "Type your question here, remember to be specific :)"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        -416
+      ],
+      "id": "9ddc0c37-a980-467b-b554-73af11e2442f",
+      "name": "When chat message received",
+      "webhookId": "60688b0c-8fa8-4dfe-a96b-9b0423ff0cc4",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "oSh7mNprkZgneqTO",
+          "name": "Unnamed credential"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('When chat message received').item.json.chatInput }}",
+        "options": {
+          "systemMessage": "=You are an Office AI Workspace Agent that helps users manage Google Sheets, Google Docs, Gmail, Google Calendar and Google Drive via the provided tools. Today is {{ $now }}.\n\n### General operating rules\n- Work only through the provided tools. Do not invent tools or parameters.\n- Ask concise clarifying questions whenever a required detail is missing (e.g., target sheet/tab, required fields, file IDs).\n- Be conservative with destructive actions (updates/deletes): confirm intent if ambiguous.\n- Never invent new columns. If a sheet lacks a needed column, ask whether to create it or use another sheet.\n- Data typing:\n  - Dates: ISO-8601 (YYYY-MM-DD) unless the sheet clearly uses a different format.\n  - Booleans: true/false (unquoted).\n  - Numbers: numeric type.\n- Header handling: “row_number” is a synthetic first header—always ignore it when mapping data or interpreting results.\n- If the user asks for Gmail or Calendar operations and corresponding tools are not available, ask for the tool access or provide alternatives.\n\n### Tool index (contracts)\n- TOOL - list_files/folders: Find file/folder IDs. Use natural-language queries like:\n  - Find spreadsheet’s \"My Tasks\" ID\n  - Find folder \"Invoices\" ID\n  - Find file \"Q4 Plan\" ID\n- TOOL - Get header: Get a sheet’s header row. Ignore the first element (“row_number”).\n- TOOL - BuildSheetRows: Input:\n  - headers: array from Get header (excluding “row_number”)\n  - rows: an object or array of objects whose keys exactly match header names\n  Output: rowsString (a JSON array string). Pass it verbatim to row mutation tools—do not re-escape or modify.\n- TOOL - Google Sheets tool (Automatic mapping): Use for add/update actions when the tool expects Automatic mapping (Add sheet tool).\n- TOOL - Append/Update/DeleteRows: Mutate rows. Required fields:\n  - spreadsheetId: string\n  - sheetName: string\n  - EITHER rowsString (exact output of BuildSheetRows) OR rows (array of row objects)\n  - \"IsUpdate?\": \"True\" or \"False\" (string)\n  - \"IsDelete?\": \"True\" or \"False\" (string)\n  - Row: number (required if updating or deleting)\n  - NumberOfRowsToDelete: number (default 1; include if user specifies more)\n  Notes: Do not wrap arguments in a “query” field. Do not rename fields.\n- TOOL - Get data (rows): Read rows. Ignore the first element (“row_number”).\n- TOOL - Google docs tool: Create, read, and update Google Docs. Requires:\n  - DOC ID (for read/update), folder ID (for creation), and a “query” string describing the operation.\n  - Use Drive Management for delete/move/download operations (see below).\n- TOOL - google drive managment node tool: Move, download, and delete files (including Google Docs). Always include:\n  - file ID and a “query” describing the action (e.g., Move file (file ID) to (parent folder ID) in (parent drive ID))\n  - parent folder ID and parent drive ID for moving; otherwise leave them empty.\n  - For deleting Google Spreadsheets/Sheets (entire files), use the dedicated spreadsheets/sheets delete node tool instead of Drive Management.\n- TOOL - upload node tool: Upload files to Drive. Inputs:\n  - file name (optional if the user already specified),\n  - parent drive ID,\n  - parent folder ID.\n  Data (file content) is auto-filled by the extract-from-file module; do not provide it yourself.\n\n### Workflow: Google Sheets (add, get, update, delete rows)\n1) Locate target spreadsheet and tab:\n   - Use TOOL - list_files/folders to find the spreadsheetId.\n   - Determine sheetName (tab). If uncertain, ask the user. If you suspect a tab exists but cannot confirm, attempt Get header; if it fails, ask the user or propose creating it.\n2) For add/update:\n   - Get header via TOOL - Get header and ignore the first element (“row_number”).\n   - Convert the user’s request into a row object whose keys match headers exactly. Include only existing columns.\n   - If a required value is missing and not clearly optional, ask a clarifying question before proceeding.\n   - Call TOOL - BuildSheetRows with:\n     - headers: array from Get header (without “row_number”)\n     - rows: object or array of objects\n   - Then call TOOL - Google Sheets tool (Automatic) if using the Add sheet tool, OR call TOOL - Append/Update/DeleteRows directly as needed (see below).\n3) For reading:\n   - Use TOOL - Get data (rows). Ignore the first “row_number” column in the results.\n4) For Append/Update/DeleteRows:\n   - Appending:\n     {\n       \"spreadsheetId\": \"1AbCDEF...\",\n       \"sheetName\": \"Tasks\",\n       \"rowsString\": \"<exact string from BuildSheetRows>\",\n       \"IsUpdate?\": \"False\",\n       \"IsDelete?\": \"False\"\n     }\n   - Updating:\n     {\n       \"spreadsheetId\": \"1AbCDEF...\",\n       \"sheetName\": \"Tasks\",\n       \"rowsString\": \"<exact string from BuildSheetRows>\",\n       \"IsUpdate?\": \"True\",\n       \"IsDelete?\": \"False\",\n       \"Row\": 2\n     }\n   - Deleting:\n     {\n       \"spreadsheetId\": \"1AbCDEF...\",\n       \"sheetName\": \"Tasks\",\n       \"IsUpdate?\": \"False\",\n       \"IsDelete?\": \"True\",\n       \"Row\": 2,\n       \"NumberOfRowsToDelete\": 1\n     }\n   Notes:\n   - If you already have rows as an array, you may pass \"rows\" instead of \"rowsString\".\n   - Use the sheet’s 1-based row index (header is row 1; first data row is 2).\n\nData mapping rules for Sheets\n- Keys must match header names exactly (including spaces and case).\n- Exclude any unknown fields.\n- Dates: default to YYYY-MM-DD unless the sheet clearly uses another format.\n- When the sheet is missing a needed column, ask the user whether to add the column or choose another sheet.\n\n### Workflow: Google Docs\n- For create:\n  - Use TOOL - list_files/folders to get the target folder ID (and parent drive if needed).\n  - Call TOOL - Google docs tool with folder ID and a clear “query” describing what to create.\n- For read/update:\n  - Use TOOL - list_files/folders to obtain DOC ID.\n  - Call TOOL - Google docs tool with DOC ID and a “query” describing the operation.\n- For delete/move/download:\n  - Use TOOL - google drive managment node tool with file ID and a precise “query”.\n  - Do not use Google docs tool for deletion.\n\n### Workflow: Google Drive (move, delete, download)\n- Move:\n  - TOOL - google drive managment node tool with file ID, parent folder ID, parent drive ID, and “query”.\n- Download:\n  - TOOL - google drive managment node tool with file ID and “query”.\n- Delete:\n  - Use TOOL - google drive managment node tool for all file types, including Google Docs.\n  - Exception: For deleting Google Spreadsheets/Sheets (entire files), use the dedicated spreadsheets/sheets delete node tool.\n\n### Clarification and confirmation policy\n- If multiple files match a name, list top matches (name, type, ID) and ask which to use.\n- Confirm before destructive actions if the user’s intent or target rows/files are ambiguous.\n- If the user requests unsupported services without tools, ask for the appropriate tool or offer to proceed with available services.\n- Don't use additional comments while calling other tools, just specific short intruction with data.\n\nEnd-user response style\n- Be concise and action-oriented. Summarize what you’re doing and then perform the tool calls.\n- After tool completion, report the outcome with the minimal necessary detail (e.g., affected rows, file IDs/names)."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        480,
+        -416
+      ],
+      "id": "236189c9-ca18-49a1-be4f-ab3b4a0419d6",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": "o4-mini",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatAzureOpenAi",
+      "typeVersion": 1,
+      "position": [
+        32,
+        -240
+      ],
+      "id": "f22c60d5-6bd6-4188-8e44-0a321d7aec8c",
+      "name": "Azure OpenAI Chat Model",
+      "credentials": {
+        "azureOpenAiApi": {
+          "id": "c1r0n77HyUjpKOR0",
+          "name": "Azure Open AI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "contextWindowLength": 30
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        208,
+        -240
+      ],
+      "id": "687acbe9-676b-46c4-8179-dfea0e853ca0",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "calendar": {
+          "__rl": true,
+          "value": "stefanskiszymon60@gmail.com",
+          "mode": "list",
+          "cachedResultName": "stefanskiszymon60@gmail.com"
+        },
+        "eventId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Event_ID', ``, 'string') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        -464,
+        160
+      ],
+      "id": "4f63c180-4e4b-47cc-979c-743fe6ee4a27",
+      "name": "Delete Event",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "bxPw7MP1JRjCxH4t",
+          "name": "Google Calendar account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "calendar": {
+          "__rl": true,
+          "value": "stefanskiszymon60@gmail.com",
+          "mode": "list",
+          "cachedResultName": "stefanskiszymon60@gmail.com"
+        },
+        "start": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Start', ``, 'string') }}",
+        "end": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('End', ``, 'string') }}",
+        "additionalFields": {
+          "description": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Description', ``, 'string') }}",
+          "summary": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Summary', ``, 'string') }}"
+        }
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        -352,
+        160
+      ],
+      "id": "fc10b31c-dd6b-4830-8ce6-99757e6550f0",
+      "name": "Create event",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "bxPw7MP1JRjCxH4t",
+          "name": "Google Calendar account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "calendar": {
+          "__rl": true,
+          "value": "stefanskiszymon60@gmail.com",
+          "mode": "list",
+          "cachedResultName": "stefanskiszymon60@gmail.com"
+        },
+        "timeMin": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('After', ``, 'string') }}",
+        "timeMax": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Before', ``, 'string') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        -240,
+        160
+      ],
+      "id": "4cb9e04d-01af-4159-bae5-31f48a4fe1ff",
+      "name": "Get many",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "bxPw7MP1JRjCxH4t",
+          "name": "Google Calendar account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "calendar": {
+          "__rl": true,
+          "value": "stefanskiszymon60@gmail.com",
+          "mode": "list",
+          "cachedResultName": "stefanskiszymon60@gmail.com"
+        },
+        "eventId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Event_ID', ``, 'string') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        -144,
+        160
+      ],
+      "id": "70b33eea-fa99-479a-bf04-70f1e7ca156a",
+      "name": "Get",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "bxPw7MP1JRjCxH4t",
+          "name": "Google Calendar account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "calendar": {
+          "__rl": true,
+          "value": "stefanskiszymon60@gmail.com",
+          "mode": "list",
+          "cachedResultName": "stefanskiszymon60@gmail.com"
+        },
+        "eventId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Event_ID', ``, 'string') }}",
+        "updateFields": {
+          "description": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Description', ``, 'string') }}"
+        }
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        -48,
+        160
+      ],
+      "id": "31f34feb-49bc-4b09-9303-c1c9820ae6c9",
+      "name": "Update",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "bxPw7MP1JRjCxH4t",
+          "name": "Google Calendar account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "calendar": {
+          "__rl": true,
+          "value": "stefanskiszymon60@gmail.com",
+          "mode": "list",
+          "cachedResultName": "stefanskiszymon60@gmail.com"
+        },
+        "eventId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Event_ID', ``, 'string') }}",
+        "updateFields": {
+          "attendeesUi": {
+            "values": {
+              "attendees": [
+                "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('attendees0_Attendees', ``, 'string') }}"
+              ]
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        48,
+        160
+      ],
+      "id": "3b725320-d8bf-4b01-afba-fe1be7dbcf24",
+      "name": "Attendees",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "bxPw7MP1JRjCxH4t",
+          "name": "Google Calendar account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "# Calendar section",
+        "height": 240,
+        "width": 660,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -496,
+        80
+      ],
+      "id": "ac067896-f457-48e3-86d6-85b8102d46aa",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "# Trigger and agent function section",
+        "height": 620,
+        "width": 932,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -32,
+        -544
+      ],
+      "id": "4d55364b-9ca2-4232-8411-b3eb420a6d94",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "returnAll": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Return_All', ``, 'boolean') }}",
+        "filters": {
+          "readStatus": "both",
+          "sender": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Sender', ``, 'string') }}"
+        }
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.1,
+      "position": [
+        208,
+        160
+      ],
+      "id": "c51dc5c1-8aab-44a6-ae21-9a5be19962aa",
+      "name": "Get many messages",
+      "webhookId": "08e6439a-4945-4e7c-ac1a-ae17c4f0891e",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "QxPwaCptuUpT21sM",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "reply",
+        "messageId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Message_ID', ``, 'string') }}",
+        "emailType": "text",
+        "message": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Message', ``, 'string') }}",
+        "options": {
+          "attachmentsUi": {
+            "attachmentsBinary": [
+              {
+                "property": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('attachmentsBinary0_Attachment_Field_Name', ``, 'string') }}"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.1,
+      "position": [
+        336,
+        160
+      ],
+      "id": "2d3ffe91-f7df-4c84-adc0-231f6351e7ed",
+      "name": "Reply",
+      "webhookId": "247d9b0e-746d-4473-a0e7-7697a8942f28",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "QxPwaCptuUpT21sM",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "messageId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Message_ID', ``, 'string') }}"
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.1,
+      "position": [
+        448,
+        160
+      ],
+      "id": "33ebafb7-eab8-41ed-94cb-d7eae193455c",
+      "name": "Delete message",
+      "webhookId": "247d9b0e-746d-4473-a0e7-7697a8942f28",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "QxPwaCptuUpT21sM",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "draft",
+        "subject": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Subject', ``, 'string') }}",
+        "message": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Message', ``, 'string') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.1,
+      "position": [
+        560,
+        160
+      ],
+      "id": "d4257d05-68dc-4a30-8a76-12063a29c5a6",
+      "name": "Create Draft",
+      "webhookId": "247d9b0e-746d-4473-a0e7-7697a8942f28",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "QxPwaCptuUpT21sM",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "draft",
+        "operation": "delete",
+        "messageId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Draft_ID', ``, 'string') }}"
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.1,
+      "position": [
+        672,
+        160
+      ],
+      "id": "6a733dad-a8ec-4e5d-8472-674b7453770b",
+      "name": "Delete draft",
+      "webhookId": "247d9b0e-746d-4473-a0e7-7697a8942f28",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "QxPwaCptuUpT21sM",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('To', ``, 'string') }}",
+        "subject": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Subject', ``, 'string') }}",
+        "message": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Message', ``, 'string') }}",
+        "options": {
+          "attachmentsUi": {
+            "attachmentsBinary": [
+              {
+                "property": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('attachmentsBinary0_Attachment_Field_Name', ``, 'string') }}"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.1,
+      "position": [
+        784,
+        160
+      ],
+      "id": "35e551c2-3ab5-4872-8467-1a9270be0490",
+      "name": "Send message",
+      "webhookId": "247d9b0e-746d-4473-a0e7-7697a8942f28",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "QxPwaCptuUpT21sM",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "# Gmail section",
+        "height": 240,
+        "width": 740,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        160,
+        80
+      ],
+      "id": "2a8780e5-10b8-4ba8-9e3a-a6ccd4fde95a",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "resource": "spreadsheet",
+        "title": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Title', ``, 'string') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        944,
+        160
+      ],
+      "id": "03bc92fb-125e-4f9b-ab25-e974a53bb085",
+      "name": "Create new sheet document",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "qBK79176GZTj00aZ",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "spreadsheet",
+        "operation": "deleteSpreadsheet",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Document', ``, 'string') }}",
+          "mode": "id"
+        }
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        1088,
+        160
+      ],
+      "id": "35efed1e-e1b1-4ec0-b82a-86558bce533f",
+      "name": "Delete sheet document",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "qBK79176GZTj00aZ",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Document', ``, 'string') }}",
+          "mode": "id"
+        },
+        "title": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Title', ``, 'string') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        1216,
+        160
+      ],
+      "id": "3fadac0a-e4c7-4717-a57f-b23682a1e927",
+      "name": "Create sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "qBK79176GZTj00aZ",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "remove",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Document', ``, 'string') }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Sheet', ``, 'string') }}"
+        }
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        1328,
+        160
+      ],
+      "id": "f3b80e5d-1913-47a8-a27b-e2a1b11d9a65",
+      "name": "delete sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "qBK79176GZTj00aZ",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Get only the first row (header) of the sheet. Ignore first column (row number column). Interpret the first row (header) as data too, in case sheet is empty.",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Document', ``, 'string') }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Sheet', ``, 'string') }}"
+        },
+        "options": {
+          "dataLocationOnSheet": {
+            "values": {
+              "rangeDefinition": "specifyRange",
+              "firstDataRow": 1
+            }
+          },
+          "returnFirstMatch": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Return_only_First_Matching_Row', ``, 'boolean') }}"
+        }
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        1584,
+        160
+      ],
+      "id": "d7a478eb-7584-400a-a336-7fc3e19a2ba1",
+      "name": "Get header",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "qBK79176GZTj00aZ",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "description": "Call this tool after getting the header from sheet to pass the data into specific json output to use for Add to sheet tool.",
+        "jsCode": "// Input arrives as query: { headers, row?, rows?, options? }\nconst payload =\n(typeof query === 'object' && query) ? query\n: (typeof input === 'object' && input?.query) ? input.query\n: (typeof input === 'object') ? input\n: {};\n\nconst headers = Array.isArray(payload.headers) ? payload.headers : [];\nconst rows = Array.isArray(payload.rows) ? payload.rows : (payload.row ? [payload.row] : []);\nconst options = payload.options || {};\n\nif (!headers.length) {\nreturn 'ERROR: headers array is required';\n}\nif (!rows.length) {\nreturn 'ERROR: provide \"row\" (object) or \"rows\" (array of objects)';\n}\n\nconst fillMissingWith = options.fillMissingWith ?? '';\nconst trim = options.trimWhitespace ?? true;\n\nconst normalized = rows.map((r) => {\nconst out = {};\nfor (const h of headers) {\nlet v = r?.[h];\nif (v === undefined || v === null) v = fillMissingWith;\nif (trim && typeof v === 'string') v = v.trim();\nout[h] = v;\n}\nreturn out;\n});\n\n// Must return a string\nreturn JSON.stringify(normalized);",
+        "specifyInputSchema": true,
+        "schemaType": "manual",
+        "inputSchema": "{\n\"type\": \"object\",\n\"properties\": {\n\"headers\": { \"type\": \"array\", \"items\": { \"type\": \"string\" } },\n\"row\": { \"type\": \"object\", \"additionalProperties\": true },\n\"rows\": { \"type\": \"array\", \"items\": { \"type\": \"object\", \"additionalProperties\": true } },\n\"options\": {\n\"type\": \"object\",\n\"properties\": {\n\"fillMissingWith\": {},\n\"trimWhitespace\": { \"type\": \"boolean\" }\n},\n\"additionalProperties\": true\n}\n},\n\"required\": [\"headers\"]\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolCode",
+      "typeVersion": 1.3,
+      "position": [
+        960,
+        -352
+      ],
+      "id": "cc96d78e-aa22-4791-88c2-dd54ac2a3390",
+      "name": "BuildSheetRows"
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Use this tool to retrieve one or many rows without header (first row) and without first column (row_number)",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Document', ``, 'string') }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Sheet', ``, 'string') }}"
+        },
+        "options": {
+          "dataLocationOnSheet": {
+            "values": {
+              "rangeDefinition": "specifyRange"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        1456,
+        160
+      ],
+      "id": "5f60a44f-a17b-494c-aae8-14b9fc42d45d",
+      "name": "Get data (rows)",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "qBK79176GZTj00aZ",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "# Special tools\n## Here are additional special tools like code nodes or subworkflows to echnance the automatization even further.",
+        "height": 624,
+        "width": 788,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        896,
+        -544
+      ],
+      "id": "42c673f7-cbd8-48e4-9932-3f5d58bc4a52",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "content": "# Spreadsheet and sheet section",
+        "height": 240,
+        "width": 784,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        896,
+        80
+      ],
+      "typeVersion": 1,
+      "id": "bb1c338d-0f9d-4b89-a8a0-46ee7fc72c88",
+      "name": "Sticky Note5"
+    },
+    {
+      "parameters": {
+        "description": "Call this tool to append, delete or update rows to sheet after getting data from BuildSheetRows",
+        "workflowId": {
+          "__rl": true,
+          "value": "FqhBpywKWyFrnhJJ",
+          "mode": "list",
+          "cachedResultName": "TOOL - Append/Update/DeleteRows"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Spreadsheet ID": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Spreadsheet_ID', ``, 'string') }}",
+            "Sheet name": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Sheet_name', ``, 'string') }}",
+            "rowsJson": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('rowsJson', ``, 'string') }}",
+            "IsUpdate?": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('IsUpdate_', ``, 'boolean') }}",
+            "Row": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Row', `You only add row number when update is true`, 'string') }}",
+            "NumberOfRowsToDelete": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('NumberOfRowsToDelete', `You only add number of rows to delete when delete is true`, 'number') }}",
+            "IsDelete?": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('IsDelete_', ``, 'boolean') }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Spreadsheet ID",
+              "displayName": "Spreadsheet ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "Sheet name",
+              "displayName": "Sheet name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "rowsJson",
+              "displayName": "rowsJson",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "IsUpdate?",
+              "displayName": "IsUpdate?",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "boolean",
+              "removed": false
+            },
+            {
+              "id": "IsDelete?",
+              "displayName": "IsDelete?",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "boolean",
+              "removed": false
+            },
+            {
+              "id": "Row",
+              "displayName": "Row",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "number",
+              "removed": false
+            },
+            {
+              "id": "NumberOfRowsToDelete",
+              "displayName": "NumberOfRowsToDelete",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "number",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        1072,
+        -272
+      ],
+      "id": "9b17a756-0dc0-4688-82a2-dabde58d55c2",
+      "name": "TOOL - Append/Update/DeleteRows"
+    },
+    {
+      "parameters": {
+        "description": "Call this tool to get all avaiable IDs and names for folders and files (For google spreadsheets ID and sheets names specifically). It accepts query input as a string. If the name of spreadsheet is known, pass them too to find that specific file/folder.",
+        "workflowId": {
+          "__rl": true,
+          "value": "cjrJAIg4vafNOhJz",
+          "mode": "list",
+          "cachedResultName": "TOOL - List_files/folders"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "query": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('query', ``, 'string') }}"
+          },
+          "matchingColumns": [
+            "query"
+          ],
+          "schema": [
+            {
+              "id": "query",
+              "displayName": "query",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        1184,
+        -352
+      ],
+      "id": "d97761f7-f730-43ff-87f7-3479728077bd",
+      "name": "TOOL - list_files/folders"
+    },
+    {
+      "parameters": {
+        "description": "Call this tool to manage google documents. Before calling this tool, you need (depending on the operation) Document ID as DOC ID, folder ID and query with instructions of what should be done.",
+        "workflowId": {
+          "__rl": true,
+          "value": "n9PQRnTo50zs6ZmR",
+          "mode": "list",
+          "cachedResultName": "TOOL - Google docs"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Folder ID": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Folder_ID', ``, 'string') }}",
+            "DOC ID": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('DOC_ID', ``, 'string') }}",
+            "query": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('query', ``, 'string') }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Folder ID",
+              "displayName": "Folder ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "DOC ID",
+              "displayName": "DOC ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "query",
+              "displayName": "query",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        1312,
+        -272
+      ],
+      "id": "bb1afb73-d3d0-4528-8cfd-17cb275f4f36",
+      "name": "TOOL - google docs operations"
+    },
+    {
+      "parameters": {
+        "content": "# Downsides so far\n### - For docs tools, and probably other tools like google sheet too, model can't find the parent's folder ID based on just the file name/ID\n### - Had to create a lot more subworkflows then would like to\n### - Sometimes agent (from both main and sub workflows) locks on never-ending iterations or can't complete task it could before or asks question about the data it has (brain fog?)\n### - data from chat comes in names as data0, data1 and so on, which makes it harder to upload more then one file and pass it through extract from file module.\n### - Instruction must be focused mainly on one action, to avoid problems with files (switch module) and files can be uploaded one by one (can't attach many items)",
+        "height": 864
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1680,
+        -544
+      ],
+      "typeVersion": 1,
+      "id": "8f02012c-d5f0-4ac7-a64c-270e6beeea9d",
+      "name": "Sticky Note8"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "BsKgalRexfl0Oz4u",
+          "mode": "list",
+          "cachedResultName": "TOOL - Google drive"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "File name": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('File_name', `This field accepts file name if you want to upload a new file. Otherwise leave it empty.`, 'string') }}",
+            "File ID": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('File_ID', `This field accepts file ID, which you can get from tool TOOL- list_files/folders.`, 'string') }}",
+            "Parent folder ID": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Parent_folder_ID', `This field accepts parent folder ID, which is a folder ID that a file will be moved to or upload to. Use only for moving or uploading operations. Otherwise you can leave it empty.`, 'string') }}",
+            "Parent drive ID": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Parent_drive_ID', `This field accepts parent drive ID, which is a drive ID that a file will be moved to or upload to. Use only for moving or uploading operations. Otherwise you can leave it empty.`, 'string') }}",
+            "query": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('query', `Pass your instruction query here to specifiy the operation and information about data.`, 'string') }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "File name",
+              "displayName": "File name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "File ID",
+              "displayName": "File ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "Parent folder ID",
+              "displayName": "Parent folder ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "Parent drive ID",
+              "displayName": "Parent drive ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "query",
+              "displayName": "query",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        1440,
+        -352
+      ],
+      "id": "9fcd1dec-2577-4e07-8919-e87b5ab73d12",
+      "name": "TOOL - Google drive managment"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "7ebKzic37P2LMkuZ",
+          "mode": "list",
+          "cachedResultName": "TOOL - upload"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "File name": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('File_name', `In case there is no name given, put the default name of the attached file as fileName from chat trigger.`, 'string') }}",
+            "Parent drive ID": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Parent_drive_ID', ``, 'string') }}",
+            "Parent folder ID": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Parent_folder_ID', ``, 'string') }}",
+            "File": "={{ $('Extract from File').item.json.data }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "File name",
+              "displayName": "File name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "Parent drive ID",
+              "displayName": "Parent drive ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "Parent folder ID",
+              "displayName": "Parent folder ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "File",
+              "displayName": "File",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        1568,
+        -272
+      ],
+      "id": "ce04f221-973a-4b7f-96bf-a1b681bcb00b",
+      "name": "TOOL - upload",
+      "disabled": true
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Azure OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delete Event": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create event": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get many": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Attendees": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get many messages": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reply": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delete message": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Draft": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delete draft": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send message": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create new sheet document": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delete sheet document": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create sheet": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "delete sheet": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        []
+      ]
+    },
+    "Get header": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "BuildSheetRows": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get data (rows)": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "TOOL - Append/Update/DeleteRows": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "TOOL - list_files/folders": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "TOOL - google docs operations": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "TOOL - Google drive managment": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "TOOL - upload": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Europe/Warsaw",
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "versionId": "cf87a930-90cd-4870-a921-70cb845e79f8",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "f1e8e899ff46369f9c32ee0519c314890a667daa91c593fcbd7438d3d8aac985"
+  },
+  "id": "x4fhIIdCCjapglVx",
+  "tags": [
+    {
+      "createdAt": "2025-09-17T17:47:24.883Z",
+      "updatedAt": "2025-09-17T17:47:24.883Z",
+      "id": "WjqjXN8mXHvLhxTc",
+      "name": "In-Work"
+    }
+  ]
+}

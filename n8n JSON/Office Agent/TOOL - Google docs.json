@@ -1,0 +1,339 @@
+{
+  "name": "TOOL - Google docs",
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "Folder ID"
+            },
+            {
+              "name": "DOC ID"
+            },
+            {
+              "name": "query"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        16,
+        0
+      ],
+      "id": "96e76d85-d14e-47d9-b641-4cd085cc8ff9",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "jsCode": "const fID = String($json[\"Folder ID\"] || '');\n\n//if (!fID) throw new Error(\"Document ID is required!\")\n\nreturn{\n  json:{\n    _fID : fID\n  }\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        96,
+        208
+      ],
+      "id": "46559483-dcf6-4628-b010-6b22cbc63107",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('When Executed by Another Workflow').item.json.query }}",
+        "options": {
+          "systemMessage": "=You are AI tool that manages the google documents. You get 3 valuables from trigger. query is your additional informaiton what to do (what operation) with additional settings/actions.{{ $('When Executed by Another Workflow').item.json[\"DOC ID\"] }} is used for updating and getting tools as DOC ID.\nWhile using updating tools:\n- Use update (insert new) node for inserting new text into the document\n- Use update (replace) node for replacing old text with new one"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        208,
+        0
+      ],
+      "id": "990d539d-edc3-4155-861c-989d3c1ece87",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": "o4-mini",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatAzureOpenAi",
+      "typeVersion": 1,
+      "position": [
+        272,
+        208
+      ],
+      "id": "a364f841-e8b9-4c34-a5b3-14cf7527eeb3",
+      "name": "Azure OpenAI Chat Model",
+      "credentials": {
+        "azureOpenAiApi": {
+          "id": "c1r0n77HyUjpKOR0",
+          "name": "Azure Open AI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "folderId": "={{ $('Code').item.json._fID }}",
+        "title": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Title', ``, 'string') }}"
+      },
+      "type": "n8n-nodes-base.googleDocsTool",
+      "typeVersion": 2,
+      "position": [
+        736,
+        208
+      ],
+      "id": "372cb028-aed3-4998-b1f4-06e3949d3e01",
+      "name": "Create new document",
+      "credentials": {
+        "googleDocsOAuth2Api": {
+          "id": "Z9QTsETAsX2WBEpj",
+          "name": "Google Docs account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "documentURL": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Doc_ID_or_URL', ``, 'string') }}",
+        "simple": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Simplify', ``, 'boolean') }}"
+      },
+      "type": "n8n-nodes-base.googleDocsTool",
+      "typeVersion": 2,
+      "position": [
+        736,
+        0
+      ],
+      "id": "f778f22b-469f-458d-a7c0-8a8ba8849efa",
+      "name": "Get a document in Google Docs",
+      "credentials": {
+        "googleDocsOAuth2Api": {
+          "id": "Z9QTsETAsX2WBEpj",
+          "name": "Google Docs account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Update a document in Google Docs. When choosing action, keep in mind the instruction. If you are supposed to update old text, replace action is needed. Otherwise use insert action.",
+        "operation": "update",
+        "documentURL": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Doc_ID_or_URL', ``, 'string') }}",
+        "simple": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Simplify', ``, 'boolean') }}",
+        "actionsUi": {
+          "actionFields": [
+            {
+              "action": "replaceAll",
+              "text": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('actionFields0_Text', ``, 'string') }}",
+              "replaceText": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('actionFields0_New_Text', ``, 'string') }}",
+              "matchCase": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('actionFields0_Match_Case', ``, 'boolean') }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.googleDocsTool",
+      "typeVersion": 2,
+      "position": [
+        576,
+        208
+      ],
+      "id": "95b302aa-1ea5-4b7f-8528-de0088803b40",
+      "name": "Update (replace)",
+      "credentials": {
+        "googleDocsOAuth2Api": {
+          "id": "Z9QTsETAsX2WBEpj",
+          "name": "Google Docs account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Update a document in Google Docs. When choosing action, keep in mind the instruction. If you are supposed to update old text, replace action is needed. Otherwise use insert action.",
+        "operation": "update",
+        "documentURL": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Doc_ID_or_URL', ``, 'string') }}",
+        "simple": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Simplify', ``, 'boolean') }}",
+        "actionsUi": {
+          "actionFields": [
+            {
+              "action": "insert",
+              "text": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('actionFields0_Text', ``, 'string') }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.googleDocsTool",
+      "typeVersion": 2,
+      "position": [
+        576,
+        0
+      ],
+      "id": "8fe01cfd-b6a9-461c-81df-c7fa75ead8f8",
+      "name": "Update (insert new)",
+      "credentials": {
+        "googleDocsOAuth2Api": {
+          "id": "Z9QTsETAsX2WBEpj",
+          "name": "Google Docs account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Subworkflow TOOL - Google docs\nThis workflow is a google docs tool to help managing the document files. It allows to update (for now only insert or replace text, but it's possible to add much much more), create and get a document.\n\n## How does it work?\nIt receives the data from trigger input, which is passed by main workflow, then using code tool create a specific format for certain data fields if needed and passed to agent. Then the AI based on query field it receives chooses the correct operation and return the results.",
+        "height": 496
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -256,
+        -80
+      ],
+      "typeVersion": 1,
+      "id": "5146913d-01c4-41d4-b701-bb78ccdf8851",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## Main body",
+        "height": 496,
+        "width": 544,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -16,
+        -80
+      ],
+      "typeVersion": 1,
+      "id": "bea63fa0-02a8-4336-8ac9-df9061b5c326",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## Google docs tools",
+        "height": 496,
+        "width": 336,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        528,
+        -80
+      ],
+      "typeVersion": 1,
+      "id": "c5bd5931-6aa0-4e68-870f-8aca232bde43",
+      "name": "Sticky Note2"
+    }
+  ],
+  "pinData": {
+    "When Executed by Another Workflow": [
+      {
+        "json": {
+          "Folder ID": "asdasdasda",
+          "DOC ID": "asdasdasda",
+          "query": "Update the document with this DOC ID"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Azure OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create new document": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a document in Google Docs": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update (replace)": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update (insert new)": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "75fc7864-7d76-4016-8343-bdaaa7a3f92a",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "f1e8e899ff46369f9c32ee0519c314890a667daa91c593fcbd7438d3d8aac985"
+  },
+  "id": "n9PQRnTo50zs6ZmR",
+  "tags": [
+    {
+      "createdAt": "2025-09-17T18:46:54.761Z",
+      "updatedAt": "2025-09-17T18:46:54.761Z",
+      "id": "FDv1CigvsZnlhCPE",
+      "name": "Subworkflow"
+    }
+  ]
+}

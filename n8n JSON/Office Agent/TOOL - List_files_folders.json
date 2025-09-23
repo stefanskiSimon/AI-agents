@@ -1,0 +1,191 @@
+{
+  "name": "TOOL - List_files/folders",
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "query"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "d60f6e1f-81e5-4eda-b43d-12b1a897edc7",
+      "name": "When Executed by Another Workflow",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "model": "o4-mini",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatAzureOpenAi",
+      "typeVersion": 1,
+      "position": [
+        144,
+        208
+      ],
+      "id": "25caacbf-0185-4008-b244-027daec9b8e9",
+      "name": "Azure OpenAI Chat Model",
+      "credentials": {
+        "azureOpenAiApi": {
+          "id": "c1r0n77HyUjpKOR0",
+          "name": "Azure Open AI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "fileFolder",
+        "limit": 50,
+        "searchMethod": "query",
+        "queryString": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Search_Query', ``, 'string') }}",
+        "returnAll": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Return_All', ``, 'boolean') }}",
+        "filter": {
+          "driveId": {
+            "__rl": true,
+            "value": "My Drive",
+            "mode": "list",
+            "cachedResultName": "My Drive",
+            "cachedResultUrl": "https://drive.google.com/drive/my-drive"
+          },
+          "whatToSearch": "all"
+        },
+        "options": {
+          "fields": [
+            "name",
+            "id"
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.googleDriveTool",
+      "typeVersion": 3,
+      "position": [
+        288,
+        192
+      ],
+      "id": "f0e5b0d9-4cd0-4803-a373-352efd30034b",
+      "name": "check for files/folders",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "Lw6WnMEdUS3TXQ3S",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Subworkflow TOOL - list_files/folders\nThis workflow is used to gather information (IDs and names) about folders and files on google drive.\n## How it works?\nIt receives the data from trigger input, which is passed by main workflow, including a special query as a instruction. Then AI agent using the data finds and returns the required information.",
+        "height": 400
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -304,
+        -48
+      ],
+      "typeVersion": 1,
+      "id": "d8096825-a782-4f1a-9499-173e5215a385",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## Main body",
+        "height": 400,
+        "width": 528,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -64,
+        -48
+      ],
+      "typeVersion": 1,
+      "id": "3ba6c619-613f-4082-89a2-93396a1407ef",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.query }}",
+        "options": {
+          "systemMessage": "You are a AI tool to help find all avaiable files and folders in google drive using the search files/folders tool. You can be used to search ID's and names for google spreadsheets and sheets or google documents folders and files or any other folder or file on google drive. When  you receive query from user message, search the data."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        144,
+        0
+      ],
+      "id": "bb05e11f-7647-4eb1-a661-2214c290bd24",
+      "name": "AI files and folders search",
+      "executeOnce": false
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "AI files and folders search",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Azure OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI files and folders search",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "check for files/folders": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI files and folders search",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI files and folders search": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "0b38e848-a495-4340-bd23-11cc74f0dc6b",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "f1e8e899ff46369f9c32ee0519c314890a667daa91c593fcbd7438d3d8aac985"
+  },
+  "id": "cjrJAIg4vafNOhJz",
+  "tags": [
+    {
+      "createdAt": "2025-09-17T18:46:54.761Z",
+      "updatedAt": "2025-09-17T18:46:54.761Z",
+      "id": "FDv1CigvsZnlhCPE",
+      "name": "Subworkflow"
+    }
+  ]
+}
