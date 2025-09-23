@@ -1,0 +1,440 @@
+{
+  "name": "Agent do supportu",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "Upload the document to database",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Dodaj dokument",
+              "fieldType": "file",
+              "acceptFileTypes": ".pdf, .csv",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.2,
+      "position": [
+        496,
+        528
+      ],
+      "id": "0732790f-4d2e-4104-a6c3-2c02237e5bce",
+      "name": "Upload your file here",
+      "webhookId": "8e8ab380-4885-4170-9ad8-798f55940be1"
+    },
+    {
+      "parameters": {
+        "dataType": "binary",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1.1,
+      "position": [
+        864,
+        704
+      ],
+      "id": "b3e8059b-6bdf-4abf-a6d0-d31c61b0648b",
+      "name": "Default Data Loader"
+    },
+    {
+      "parameters": {
+        "content": "### RAG - Retrieval Augmented Generation\n* Generating supported with searching\n\nLoad your data into a vector database with the 📚 **Load Data** flow, and then use your data as chat context with the 🔍 **Retriever** flow.\n\n",
+        "height": 144,
+        "width": 440,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        0,
+        464
+      ],
+      "typeVersion": 1,
+      "id": "84c48860-2ef4-4cc0-82d6-db6a10c8198c",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "You are a customer service assistant and answer questions about a product for which all information is contained in the attached knowledge base. You always check the knowledge base before answering a question."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        1456,
+        512
+      ],
+      "id": "7bb7930d-e6c9-4d27-b7ce-67eaf11614ae",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "public": true,
+        "mode": "webhook",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        1184,
+        512
+      ],
+      "id": "bce32cc9-9136-4906-91bb-89b3d917998c",
+      "name": "When chat message received",
+      "webhookId": "61fd2ad3-a963-4cfb-b630-2e7c11ddad6c"
+    },
+    {
+      "parameters": {
+        "content": "### 🔍 2. Retriever Flow",
+        "height": 496,
+        "width": 680,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1136,
+        464
+      ],
+      "typeVersion": 1,
+      "id": "65172284-a03a-4bc4-9893-f92526568d3f",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "### Embeddings\n\nOperacje Wstawiania (Insert) i Pobierania (Retrieve) używają tego samego obiektu (embedding node).\n\nMa to na celu zapewnienie, że korzystają z dokładnie z tego samego modelu oraz tych samych ustawień.\n\nW przypadku użycia różnych modeli lub ustawień  operacje na danych mogą w ogóle nie działać lub powodować niezamierzone skutki.\n\n\nW kontekście RAG (Retrieval-Augmented Generation), embedding to sposób reprezentowania tekstu (słów, zdań, dokumentów) jako wektorów liczb w przestrzeni wielowymiarowej, tak aby podobne znaczeniowo treści były położone blisko siebie.\n\nCo to oznacza w praktyce?\nEmbedding zamienia tekst (np. „Jak działa fotosynteza?”) na ciąg liczb – czyli wektor.\n\nTen wektor trafia do tzw. bazy wektorowej (vector database).\n\nKiedy użytkownik zada pytanie, to ono również zostaje „zembedowane” (przekształcone na wektor).\n\nSystem porównuje ten wektor z istniejącymi wektorami dokumentów i odnajduje najbardziej podobne treści – to jest właśnie „retrieval” (wyszukiwanie).\n\nZnalezione informacje trafiają do modelu językowego (np. GPT), który używa ich do generowania odpowiedzi.\n\nW skrócie:\nEmbedding to matematyczna reprezentacja tekstu, umożliwiająca porównywanie znaczenia różnych treści.",
+        "height": 360,
+        "width": 444,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        0,
+        608
+      ],
+      "typeVersion": 1,
+      "id": "2ca3a3be-9213-45d6-aa74-3b7167a8ece5",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "model": "gpt-4o",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatAzureOpenAi",
+      "typeVersion": 1,
+      "position": [
+        1280,
+        688
+      ],
+      "id": "4336bbe5-1866-44e2-88f5-d6b87a43ade0",
+      "name": "Azure OpenAI Chat Model",
+      "credentials": {
+        "azureOpenAiApi": {
+          "id": "c1r0n77HyUjpKOR0",
+          "name": "Azure Open AI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "text-embedding-3-large",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsAzureOpenAi",
+      "typeVersion": 1,
+      "position": [
+        496,
+        768
+      ],
+      "id": "3ca1d6b0-53e0-4c0d-aedf-12eab8ae8c61",
+      "name": "Embeddings Azure OpenAI",
+      "credentials": {
+        "azureOpenAiApi": {
+          "id": "c1r0n77HyUjpKOR0",
+          "name": "Azure Open AI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "### text-embedding-3-large\n",
+        "height": 296,
+        "width": 220,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        432,
+        672
+      ],
+      "typeVersion": 1,
+      "id": "8f044697-2bb3-4d9d-b5ea-a4a28d1507f5",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "contextWindowLength": 20
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        1552,
+        672
+      ],
+      "id": "8519eb05-8fd3-4072-8076-6870cb276e35",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "qdrantCollection": {
+          "__rl": true,
+          "value": "test-collection",
+          "mode": "list",
+          "cachedResultName": "test-collection"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreQdrant",
+      "typeVersion": 1.3,
+      "position": [
+        768,
+        528
+      ],
+      "id": "9d4c602f-0708-4b8b-ae17-020807f93354",
+      "name": "Qdrant Vector Store1",
+      "credentials": {
+        "qdrantApi": {
+          "id": "C8KyRWmt9Yd9ntet",
+          "name": "QdrantApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "### 📚 Load Data Flow",
+        "height": 496,
+        "width": 700,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        432,
+        464
+      ],
+      "typeVersion": 1,
+      "id": "06c3183f-21e0-4f99-bc3a-72ddbe3edbbd",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "description": "Database for answering clients questions about products."
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolVectorStore",
+      "typeVersion": 1.1,
+      "position": [
+        1520,
+        832
+      ],
+      "id": "b1d7f9a1-0ebb-45c7-aaea-9054f00c3d8d",
+      "name": "Answer questions with a vector store"
+    },
+    {
+      "parameters": {
+        "qdrantCollection": {
+          "__rl": true,
+          "value": "test-collection",
+          "mode": "list",
+          "cachedResultName": "test-collection"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreQdrant",
+      "typeVersion": 1.3,
+      "position": [
+        1008,
+        832
+      ],
+      "id": "1e94e7fb-151d-4f15-9b49-7026c4cf148b",
+      "name": "Qdrant Vector Store2",
+      "credentials": {
+        "qdrantApi": {
+          "id": "C8KyRWmt9Yd9ntet",
+          "name": "QdrantApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## How does Vector database work (text embedding)?\n\n### * It transfer text from file into separete groups of tokens, that are later changed into vector numbers.\n### * In database, they're stored as vectors, with saved content as metadata and its text (Because the is no transfering back from vector values back to text).\n### * When someone writes a question, it is transform into vector as well, then the vector search looks for similar vectors in database.\n### * After returning the data, its content is being read and then process by LLM to create answer.",
+        "height": 320,
+        "width": 700,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1120,
+        144
+      ],
+      "typeVersion": 1,
+      "id": "dc57b5cb-63fb-4f51-8dae-0dbf8da49e3b",
+      "name": "Sticky Note11"
+    },
+    {
+      "parameters": {
+        "content": "## Requirements\n\n* Azure OpenAI gpt-4o\n* Azure OpenAI text-embedding-3-small or text-embedding-3-large\n* Qdrant API key\n* Qdrant Endpoint",
+        "height": 320,
+        "width": 440,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        688,
+        144
+      ],
+      "typeVersion": 1,
+      "id": "a0f82238-202e-48a7-8c88-11d8acef7de5",
+      "name": "Sticky Note12"
+    },
+    {
+      "parameters": {
+        "content": "# Support RAG based agent\n\nThis is project of AI agent, which uses RAG generetion to answer questions based on avaiable data from vector database (so stored files in short). Some concepts are explained on other notes here, like RAG functionality or Embeddings.\n\n### How does it work?\n\nThe agent itself is separeted into two sections: Load data flow and retriever flow.\n* Load data flow is for uploading the files to the vector database for use\n* Retriever flow is chat with user, where model based on avaiable files in database, creates an answer.",
+        "height": 320,
+        "width": 688
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        0,
+        144
+      ],
+      "typeVersion": 1,
+      "id": "147188af-32e0-419e-a032-c87067431611",
+      "name": "Sticky Note5"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Upload your file here": {
+      "main": [
+        [
+          {
+            "node": "Qdrant Vector Store1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Default Data Loader": {
+      "ai_document": [
+        [
+          {
+            "node": "Qdrant Vector Store1",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Azure OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Answer questions with a vector store",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings Azure OpenAI": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Qdrant Vector Store1",
+            "type": "ai_embedding",
+            "index": 0
+          },
+          {
+            "node": "Qdrant Vector Store2",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Answer questions with a vector store": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Qdrant Vector Store2": {
+      "ai_vectorStore": [
+        [
+          {
+            "node": "Answer questions with a vector store",
+            "type": "ai_vectorStore",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "c689a8df-aa68-407b-bfad-2bc02d7ca1fe",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "f1e8e899ff46369f9c32ee0519c314890a667daa91c593fcbd7438d3d8aac985"
+  },
+  "id": "fV6jlHNKMZ3kwrs9",
+  "tags": [
+    {
+      "createdAt": "2025-09-22T16:04:28.426Z",
+      "updatedAt": "2025-09-22T16:45:17.738Z",
+      "id": "daYNaZDqfLF2KZbF",
+      "name": "Completed"
+    }
+  ]
+}

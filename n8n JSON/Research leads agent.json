@@ -1,0 +1,600 @@
+{
+  "name": "Research leads agent",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "f252b0e9-a25d-4839-818b-2cd21aeceb2f",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -224,
+        0
+      ],
+      "id": "dab00bc6-b507-487d-9f35-8315b41a0286",
+      "name": "Webhook",
+      "webhookId": "f252b0e9-a25d-4839-818b-2cd21aeceb2f"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a6284012-2836-41e0-97b6-8a76608ab3fd",
+              "name": "Time",
+              "value": "={{ $json.body.data.createdAt }}",
+              "type": "string"
+            },
+            {
+              "id": "02620b55-8336-4ee9-a1d5-cd5f173cdeaa",
+              "name": "First_name",
+              "value": "={{ $json.body.data.fields[0].value }}",
+              "type": "string"
+            },
+            {
+              "id": "9409d04e-a46f-4f79-bbe3-70329952a61c",
+              "name": "Last_name",
+              "value": "={{ $json.body.data.fields[1].value }}",
+              "type": "string"
+            },
+            {
+              "id": "bc601ecd-7beb-4222-b1da-eed819e232ae",
+              "name": "Pnumber",
+              "value": "={{ $json.body.data.fields[3].value }}",
+              "type": "string"
+            },
+            {
+              "id": "b2863349-ec7c-48a4-be41-baa24d2c1203",
+              "name": "Email",
+              "value": "={{ $json.body.data.fields[2].value }}",
+              "type": "string"
+            },
+            {
+              "id": "5b9722f3-324c-482f-bad2-abc5e8fcfbfe",
+              "name": "Website",
+              "value": "={{ $json.body.data.fields[4].value }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -16,
+        0
+      ],
+      "id": "16fc4653-5027-4e0c-a2de-f41e1ea12bad",
+      "name": "Set fields"
+    },
+    {
+      "parameters": {
+        "model": "o4-mini",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatAzureOpenAi",
+      "typeVersion": 1,
+      "position": [
+        448,
+        128
+      ],
+      "id": "e396bb21-aa7e-4674-b48a-b5ad571c2c39",
+      "name": "Azure OpenAI Chat Model",
+      "credentials": {
+        "azureOpenAiApi": {
+          "id": "c1r0n77HyUjpKOR0",
+          "name": "Azure Open AI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"buisness_name\": {\n      \"value\": \"string\",\n      \"confidence\": 0.0\n  },\n  \"industry\": {\n      \"value\": \"string\",\n      \"confidence\": 0.0\n  },\n  \"target_audience\": {\n      \"value\": \"string\",\n      \"confidence\": 0.0\n  },\n  \"value_proposition\": {\n      \"value\": \"string\",\n      \"confidence\": 0.0\n  },\n  \"products_or_services\": {\n      \"value\": \"string\",\n      \"confidence\": 0.0\n  },\n  \"key_differentiations\": {\n      \"value\": \"string\",\n      \"confidence\": 0.0\n  },\n  \"location\": {\n      \"value\": \"string\",\n      \"confidence\": 0.0\n  },\n  \"about_summary\": {\n      \"value\": \"short summary of what is this business about\",\n      \"confidence\": 0.0\n  },\n  \"other_relevent_insights\": {\n      \"value\": [\"List of other things good to know before contacting them\"],\n      \"confidence\": 0.0\n  }\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        704,
+        128
+      ],
+      "id": "f3a41b5b-6ebc-4898-a0df-9ea16bf7bef1",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=You are an AI assistant, which analyzes various buisness websites.\nYou will be given the website URL  {{ $json.Website }}. Search the website amd focus on key insights about the buisness.\n\nFocus on products/services, target audience, pricing and differentiations.\n\nReturn the output ONLY in JSON format using the following structure:\n\n{\n  \"buisness_name\": {\n      \"value\": \"string\",\n      \"confidence\": 0.0\n  },\n  \"industry\": {\n      \"value\": \"string\",\n      \"confidence\": 0.0\n  },\n  \"target_audience\": {\n      \"value\": \"string\",\n      \"confidence\": 0.0\n  },\n  \"value_proposition\": {\n      \"value\": \"string\",\n      \"confidence\": 0.0\n  },\n  \"products_or_services\": {\n      \"value\": \"string\",\n      \"confidence\": 0.0\n  },\n  \"key_differentiations\": {\n      \"value\": \"string\",\n      \"confidence\": 0.0\n  },\n  \"location\": {\n      \"value\": \"string\",\n      \"confidence\": 0.0\n  },\n  \"about_summary\": {\n      \"value\": \"short summary of what is this business about\",\n      \"confidence\": 0.0\n  },\n  \"other_relevent_insights\": {\n      \"value\": [\"List of other things good to know before contacting them\"],\n      \"confidence\": 0.0\n  }\n}\n\nRules:\n- Don't use additional comments, only output JSON structure\n- If you can't find the values or they are not specified, leave NULL or empty array in place of \"value\"\n- Be specific, yet concise"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        544,
+        -48
+      ],
+      "id": "efaa4820-aa31-41af-8862-bdedf6cba583",
+      "name": "Research leads agent"
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1zXFyRTwW9uXJbgbQ2jJROK8yS1pycjEdeqP6_AOJrck",
+          "mode": "list",
+          "cachedResultName": "Research leads",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1zXFyRTwW9uXJbgbQ2jJROK8yS1pycjEdeqP6_AOJrck/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Arkusz1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1zXFyRTwW9uXJbgbQ2jJROK8yS1pycjEdeqP6_AOJrck/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Time": "={{ $json.Time }}",
+            "First name": "={{ $json.First_name }}",
+            "Last name": "={{ $json.Last_name }}",
+            "Email": "={{ $json.Email }}",
+            "Phone Number": "={{ $json.Pnumber }}",
+            "Website": "={{ $json.Website }}"
+          },
+          "matchingColumns": [
+            "Time"
+          ],
+          "schema": [
+            {
+              "id": "Time",
+              "displayName": "Time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "First name",
+              "displayName": "First name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Last name",
+              "displayName": "Last name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Phone Number",
+              "displayName": "Phone Number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Website",
+              "displayName": "Website",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Buisness name",
+              "displayName": "Buisness name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Buisness summary",
+              "displayName": "Buisness summary",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Products",
+              "displayName": "Products",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "target",
+              "displayName": "target",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Value proposition",
+              "displayName": "Value proposition",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        208,
+        0
+      ],
+      "id": "1a8352d3-db47-4a37-af11-9e95298764ff",
+      "name": "Add/update data",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "qBK79176GZTj00aZ",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1zXFyRTwW9uXJbgbQ2jJROK8yS1pycjEdeqP6_AOJrck",
+          "mode": "list",
+          "cachedResultName": "Research leads",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1zXFyRTwW9uXJbgbQ2jJROK8yS1pycjEdeqP6_AOJrck/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Arkusz1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1zXFyRTwW9uXJbgbQ2jJROK8yS1pycjEdeqP6_AOJrck/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Time": "={{ $('Set fields').item.json.Time }}",
+            "First name": "={{ $('Set fields').item.json.First_name }}",
+            "Last name": "={{ $('Set fields').item.json.Last_name }}",
+            "Email": "={{ $('Set fields').item.json.Email }}",
+            "Phone Number": "={{ $('Set fields').item.json.Pnumber }}",
+            "Website": "={{ $('Set fields').item.json.Website }}",
+            "Buisness name": "={{ $json.output.buisness_name.value }}",
+            "Buisness summary": "={{ $json.output.about_summary.value }}",
+            "Products": "={{ $json.output.products_or_services.value }}",
+            "target": "={{ $json.output.target_audience.value }}",
+            "Value proposition": "={{ $json.output.value_proposition.value }}",
+            "Additional insights": "={{ $json.output.other_relevent_insights.value }}"
+          },
+          "matchingColumns": [
+            "Time"
+          ],
+          "schema": [
+            {
+              "id": "Time",
+              "displayName": "Time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "First name",
+              "displayName": "First name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Last name",
+              "displayName": "Last name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Phone Number",
+              "displayName": "Phone Number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Website",
+              "displayName": "Website",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Buisness name",
+              "displayName": "Buisness name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Buisness summary",
+              "displayName": "Buisness summary",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Products",
+              "displayName": "Products",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "target",
+              "displayName": "target",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Value proposition",
+              "displayName": "Value proposition",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Additional insights",
+              "displayName": "Additional insights",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        912,
+        0
+      ],
+      "id": "279d323a-52e1-4dfd-81ae-c9cc987c01ef",
+      "name": "Insert the rest of information",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "qBK79176GZTj00aZ",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "# Research leads AI agent\n\nThis is AI agent for researching potential leads. It is simple, yet fast and precise project to gather information about buisnesses based on websites.\n\n## How does it work?\n\nIt simply listens (the webhook) for form event using tally forms. The user pass the informations about him as well as website. Then based on that data and website URL agent finds and outputs in specific JSON format informations about that buisness and appends rest of the data into the google sheet.",
+        "height": 400,
+        "width": 480
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -784,
+        -128
+      ],
+      "typeVersion": 1,
+      "id": "cc6a754c-d696-4924-9090-02597875fe07",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## Listen and data setting section",
+        "height": 400,
+        "width": 688,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -304,
+        -128
+      ],
+      "typeVersion": 1,
+      "id": "c317d534-7601-4e54-b982-4edfe5d659f3",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## Gathering information and data formating",
+        "height": 400,
+        "width": 448,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        384,
+        -128
+      ],
+      "typeVersion": 1,
+      "id": "644b3c40-e7ad-4574-8517-655f83fcfc94",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "## Appending/updating last fields of data",
+        "height": 400,
+        "width": 272,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        832,
+        -128
+      ],
+      "typeVersion": 1,
+      "id": "8190ae6b-90d4-4806-9a81-9d8bc5d0937a",
+      "name": "Sticky Note3"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Set fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set fields": {
+      "main": [
+        [
+          {
+            "node": "Add/update data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Azure OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Research leads agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Research leads agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Research leads agent": {
+      "main": [
+        [
+          {
+            "node": "Insert the rest of information",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add/update data": {
+      "main": [
+        [
+          {
+            "node": "Research leads agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "15645fb4-d249-4699-b6e3-61283c3c46ef",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "f1e8e899ff46369f9c32ee0519c314890a667daa91c593fcbd7438d3d8aac985"
+  },
+  "id": "CzpQnJ07BTtpBV1D",
+  "tags": [
+    {
+      "createdAt": "2025-09-22T16:04:28.426Z",
+      "updatedAt": "2025-09-22T16:45:17.738Z",
+      "id": "daYNaZDqfLF2KZbF",
+      "name": "Completed"
+    }
+  ]
+}

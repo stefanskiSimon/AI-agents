@@ -1,0 +1,740 @@
+{
+  "name": "Agent artykułów",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "# Articale AI agent\nThis is another project of AI agents, created to automatize the process of making articales.\n\n## How does it work?\nIt uses multiple agents to scan and prepare the right format for articale, using the data found using Tavily module. The trigger is a form, which gives the models the keyword or notes to use for search.\nAt the end the format is being created and then saved on google drive as a google document. Additionally, there is also a google sheet tool to save information about new articales and AI agent tool which sends email to user with information about new created document.",
+        "height": 540,
+        "width": 460,
+        "color": 6
+      },
+      "id": "dc906a48-6b10-4eb5-a42c-dcc28f848c14",
+      "name": "Sticky Note7",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        464,
+        192
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "authentication": "basicAuth",
+        "formTitle": "Agent - Articale generation",
+        "formDescription": "Special agent made for generating articales",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Insert your key word for a subject or notes",
+              "fieldType": "textarea",
+              "placeholder": "Example: Global warming",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {
+          "appendAttribution": false,
+          "buttonLabel": "Send",
+          "customCss": "=:root {\n\t/* Typography */\n\t--font-family: 'Open Sans', sans-serif;\n\t--font-weight-normal: 400;\n\t--font-weight-bold: 700;\n\t--font-size-body: 14px;\n\t--font-size-label: 16px;\n\t--font-size-test-notice: 14px;\n\t--font-size-input: 16px;\n\t--font-size-header: 24px;\n\t--font-size-paragraph: 16px;\n\t--font-size-link: 14px;\n\t--font-size-error: 14px;\n\t--font-size-html-h1: 32px;\n\t--font-size-html-h2: 26px;\n\t--font-size-html-h3: 22px;\n\t--font-size-html-h4: 18px;\n\t--font-size-html-h5: 16px;\n\t--font-size-html-h6: 14px;\n\t--font-size-subheader: 16px;\n\n\t/* Colors */\n\t--color-background: #1e1e1e;\n\t--color-test-notice-text: #fff;\n\t--color-test-notice-bg: #2c203c;\n\t--color-test-notice-border: #553d67;\n\t--color-card-bg: #2a2a2a;\n\t--color-card-border: #3e2c5e;\n\t--color-card-shadow: rgba(148, 0, 255, 0.15);\n\t--color-link: #c7aef8;\n\t--color-header: #7E5ABF;\n\t--color-label: #ffffff;\n\t--color-input-border: #553d67;\n\t--color-input-text: #ffffff;\n\t--color-input-bg: #333333;\n\t--color-focus-border: #9500B3;\n\t--color-submit-btn-bg: #6a0dad;\n\t--color-submit-btn-hover: #5a009e;\n\t--color-submit-btn-text: #ffffff;\n\t--color-error: #ff445a;\n\t--color-required: #ff445a;\n\t--color-clear-button-bg: #553d67;\n\t--color-html-text: #ffffff;\n\t--color-html-link: #c7aef8;\n\t--color-header-subtext: #c7aef8;\n\t--color-placeholder: rgba(255, 255, 255, 0.5);\n\n\t/* Border Radii */\n\t--border-radius-card: 10px;\n\t--border-radius-input: 8px;\n\t--border-radius-clear-btn: 50%;\n\t--card-border-radius: 10px;\n\n\t/* Spacing */\n\t--padding-container-top: 32px;\n\t--padding-card: 28px;\n\t--padding-test-notice-vertical: 14px;\n\t--padding-test-notice-horizontal: 28px;\n\t--margin-bottom-card: 20px;\n\t--padding-form-input: 14px;\n\t--card-padding: 28px;\n\t--card-margin-bottom: 20px;\n\n\t/* Dimensions */\n\t--container-width: 500px;\n\t--submit-btn-height: 52px;\n\t--checkbox-size: 20px;\n\n\t/* Shadows */\n\t--box-shadow-card: 0 6px 20px rgba(0, 0, 0, 0.3);\n\t--box-shadow-focus: 0 0 0 3px rgba(148, 0, 255, 0.4);\n}\n\n/* Form Element Styles */\n.n8n-form {\n\tbackground-color: var(--color-card-bg);\n\tborder: 1px solid var(--color-card-border);\n\tborder-radius: var(--border-radius-card);\n\tbox-shadow: var(--box-shadow-card);\n\tcolor: var(--color-input-text);\n\tfont-family: var(--font-family);\n\tpadding: var(--padding-card);\n\tmax-width: var(--container-width);\n\tmargin: 0 auto;\n}\n\n.n8n-form h1,\n.n8n-form h2,\n.n8n-form h3 {\n\tcolor: var(--color-header);\n\tfont-weight: var(--font-weight-bold);\n}\n\n.n8n-form input,\n.n8n-form select,\n.n8n-form textarea {\n\tbackground-color: var(--color-input-bg);\n\tborder: 1px solid var(--color-input-border);\n\tborder-radius: var(--border-radius-input);\n\tcolor: var(--color-input-text);\n\tfont-size: var(--font-size-input);\n\tpadding: var(--padding-form-input);\n\twidth: 100%;\n\ttransition: all 0.2s ease-in-out;\n}\n\n.n8n-form textarea {\n\tresize: vertical;\n\tmin-height: 100px;\n}\n\n.n8n-form input::placeholder,\n.n8n-form textarea::placeholder {\n\tcolor: var(--color-placeholder);\n\topacity: 1;\n}\n\n.n8n-form button[type=\"submit\"] {\n\tbackground-color: var(--color-submit-btn-bg);\n\tborder: none;\n\tborder-radius: var(--border-radius-input);\n\tcolor: var(--color-submit-btn-text);\n\tcursor: pointer;\n\tfont-size: var(--font-size-input);\n\tfont-weight: var(--font-weight-bold);\n\theight: var(--submit-btn-height);\n\ttransition: background-color 0.2s ease-in-out;\n\twidth: 100%;\n}\n\n.n8n-form button[type=\"submit\"]:hover {\n\tbackground-color: var(--color-submit-btn-hover);\n}\n\n.n8n-form .form-error {\n\tcolor: var(--color-error);\n\tfont-size: var(--font-size-error);\n}\n\n.n8n-form label {\n\tcolor: var(--color-label);\n\tdisplay: block;\n\tfont-size: var(--font-size-label);\n\tfont-weight: var(--font-weight-bold);\n\tmargin-bottom: 8px;\n}\n\n.n8n-form a {\n\tcolor: var(--color-link);\n\ttext-decoration: none;\n}\n\n.n8n-form a:hover {\n\ttext-decoration: underline;\n}"
+        }
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.2,
+      "position": [
+        1040,
+        352
+      ],
+      "id": "371351e1-6763-4e12-8b6b-87e6f99fb95a",
+      "name": "On form submission",
+      "webhookId": "3a7b6697-e707-4887-8fe6-4d8c7e5ffe9d",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "oSh7mNprkZgneqTO",
+          "name": "Unnamed credential"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "gpt-4o",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatAzureOpenAi",
+      "typeVersion": 1,
+      "position": [
+        1728,
+        544
+      ],
+      "id": "3ec05cfd-84e7-4222-9a1e-07962afe2e49",
+      "name": "Azure OpenAI Chat Model1",
+      "credentials": {
+        "azureOpenAiApi": {
+          "id": "c1r0n77HyUjpKOR0",
+          "name": "Azure Open AI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "description": "Think about the articale creating process deeply."
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolThink",
+      "typeVersion": 1,
+      "position": [
+        1920,
+        544
+      ],
+      "id": "03bba9e4-39b0-43ab-b424-9a76ebe22367",
+      "name": "Think"
+    },
+    {
+      "parameters": {
+        "model": "gpt-4o",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatAzureOpenAi",
+      "typeVersion": 1,
+      "position": [
+        2080,
+        544
+      ],
+      "id": "eb722d0b-b0bf-496f-a617-e8fea5a660e2",
+      "name": "Azure OpenAI Chat Model2",
+      "credentials": {
+        "azureOpenAiApi": {
+          "id": "c1r0n77HyUjpKOR0",
+          "name": "Azure Open AI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"tytul\": \"\",\n  \"artykul\": \"\",\n  \"keyword\": \"\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        2272,
+        544
+      ],
+      "id": "ed97ff41-1f27-48fa-80a1-0c24915db4ed",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "model": "gpt-4o",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatAzureOpenAi",
+      "typeVersion": 1,
+      "position": [
+        2432,
+        464
+      ],
+      "id": "2a9388fe-5e9c-4733-aa37-cd324906b6b7",
+      "name": "Azure OpenAI Chat Model3",
+      "credentials": {
+        "azureOpenAiApi": {
+          "id": "c1r0n77HyUjpKOR0",
+          "name": "Azure Open AI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "gpt-4o",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatAzureOpenAi",
+      "typeVersion": 1,
+      "position": [
+        1264,
+        544
+      ],
+      "id": "2c310615-b2ce-41e0-bd6a-f8a56968eb36",
+      "name": "Azure OpenAI  GPT-4o",
+      "credentials": {
+        "azureOpenAiApi": {
+          "id": "c1r0n77HyUjpKOR0",
+          "name": "Azure Open AI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Research and Draft",
+        "height": 540,
+        "width": 740
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        928,
+        192
+      ],
+      "id": "7a957e88-b81c-4ff9-931c-f913f0ac58d1",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## Redaction",
+        "height": 540,
+        "width": 380,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1664,
+        192
+      ],
+      "id": "6b49e1ab-2d21-477a-9608-9e01d53d54f0",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## SEO",
+        "height": 540,
+        "width": 340,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        2048,
+        192
+      ],
+      "id": "25be934d-b9a1-4384-8fc3-16c734a065d2",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "## Format and saving\n",
+        "height": 540,
+        "width": 880,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        2384,
+        192
+      ],
+      "id": "217b2a88-e966-43fe-826e-2e39a5ff3078",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Create articale based on the keyword and notes from here:\n\n  {{ $json['Insert your key word for a subject or notes'] }}\n\nand using the tavily research module.",
+        "options": {
+          "systemMessage": "=System Prompt: Content Marketing Expert AI Agent\n\nRole and identity\n- You are a content marketing expert with 10+ years of experience creating engaging, business-aligned articles across industries.\n- You specialize in SEO content that balances substantive value with commercial goals.\n- Today is {{ $now }}. Default language/locale: {{ $locale || \"en-US\" }}.\nOperating principles\n- Audience-first, value-dense, practical. Avoid fluff and generic filler.\n- Original writing only. Do not fabricate quotes or statistics. Cite sources for data points.\n- Match the brand voice if provided ({{ $brand_voice || \"authoritative, approachable\" }}). Otherwise default to clear, professional, and friendly.\n\nKey competencies\n- SEO-friendly writing with natural keyword integration (target density 1–2% without stuffing).\n- Tone/style adaptation to the target audience (B2B/B2C, technical/non-technical).\n- Scannable structure, strong narrative flow, and persuasive storytelling.\n- Use of examples, statistics, expert insights, trends, and practical takeaways.\n\nInputs to gather (ask if not supplied)\n- Topic and intent (informational, transactional, thought leadership, comparison, etc.).\n- Target audience (role, industry, stage in journey), region/market.\n- Primary keyword and 3–8 secondary keywords/entities.\n- Desired tone/voice, POV, reading level, word count range.\n- CTA and business objective (e.g., demo, trial, newsletter).\n- Competitor/benchmark URLs (optional), internal pages to reference/link.\n- Constraints (claims policy, legal/regulatory notes), approval sources for quotes/data.\n\nArticle creation process\n\n1) Task analysis\n- Analyze topic, audience, purpose, and business goal.\n- Identify keywords and phrases (primary + semantic variants).\n- Determine tone, POV, reading level, and angle that best serves the audience and goal.\n\n2) Article structure\n- Title (H1): Attention-grabbing and includes the main keyword. Only one H1.\n- Introduction: Hook + problem framing + preview of solution (2–3 concise paragraphs).\n- Development: Logically ordered sections with H2/H3 headings (skimmable, themed).\n- Summary/Conclusion: Key takeaways, next steps, and a clear CTA.\n\n3) Writing rules\n- Clear, accessible language; avoid jargon unless audience expects it. Define terms when needed.\n- Short paragraphs (2–4 sentences), liberal use of bullet lists and subheads.\n- Include examples, statistics (with links and year), and expert paraphrases/quotes (with source).\n- Natural keyword weaving (1–2% density), synonyms and related entities for topical depth.\n- Use internal and external links where appropriate (authoritative sources, product/feature pages).\n- Maintain accuracy; avoid unsupported claims. Mark uncertain facts as [VERIFY] and request confirmation.\n\n4) Engaging elements\n- Include rhetorical questions, analogies/metaphors, and at least one anecdote or mini case study when relevant.\n- Incorporate current trends and recent data (preferably within the last 12–18 months).\n- Use storytelling techniques to frame problems and solutions.\n\nSEO and on-page deliverables\n- Meta title (≤60 chars, primary keyword near the front).\n- Meta description (140–160 chars, benefits + primary keyword).\n- URL slug (kebab-case, concise, includes primary keyword).\n- Primary and secondary keywords; entities/LSI terms.\n- H1/H2/H3 outline.\n- Suggested internal links (anchor text + destination URL/slug placeholders if unknown).\n- Suggested external authoritative sources (with URLs).\n- Optional: Article/BlogPosting JSON-LD schema stub with placeholders.\n\nOutput format (Markdown)\n1) Content brief (at top)\n   - Topic, Audience, Goal, Primary keyword, Secondary keywords, Tone, Reading level, Word count target, CTA, Region/market, Assumptions.\n2) SEO metadata\n   - Title tag, Meta description, URL slug, Keywords list, Internal/External link suggestions, Image/alt suggestions.\n3) Outline\n   - H2/H3 structure preview. If the user hasn’t approved an outline, present it and ask for confirmation before drafting.\n4) Article\n   - One H1 title.\n   - Introduction (2–3 short paragraphs).\n   - H2/H3 sections with bullets, examples, and stats (with links).\n   - Summary/Conclusion with explicit CTA.\n   - FAQ section (3–6 Q&As aligned with People Also Ask-style queries).\n   - Sources/references (linked).\n5) Optional extras (include if requested or helpful)\n   - Social snippets (3–5 variations for LinkedIn/Twitter/X; 1–2 for Facebook).\n   - Email subject line + preview text.\n   - Featured image concept and alt text.\n\nQuality checklist (before finalizing)\n- Hook in the first 100 words; primary keyword appears early and naturally.\n- Paragraphs 2–4 sentences; headings every ~150–300 words.\n- At least one statistic with a recent source and year; no fabricated facts.\n- Jargon minimized or explained; examples included; practical takeaways explicit.\n- Keyword density ~1–2%, with synonyms/related entities; no stuffing.\n- One H1 only; meaningful H2/H3 hierarchy; scannable lists and tables where helpful.\n- Clear CTA aligned with the business goal.\n- Grammar/spell-check passed; duplication/redundancy removed; tone matches audience."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.9,
+      "position": [
+        1264,
+        352
+      ],
+      "id": "6f63e9ae-29f1-4464-b085-82b608ab7962",
+      "name": "Agent - Research and Draft"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.tavily.com/search",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "query",
+              "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('parameters0_Value', ``, 'string') }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [
+        1488,
+        544
+      ],
+      "id": "fd1d431e-611d-4acd-bbec-47f20c650648",
+      "name": "Tavily",
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "y3o4bm682efZRVxB",
+          "name": "Tavily"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Optimalize the articale to make it look and feel more professional. Don't ask for procceding.\n\nArticle:\n {{ $json.output }}\n\nYou can use the Think module to get deeply into the subject",
+        "options": {
+          "systemMessage": "=System Prompt: Content Marketing Expert AI Agent\n\nRole and identity\n- You are a content marketing expert with 10+ years of experience creating engaging, business-aligned articles across industries.\n- You specialize in SEO content that balances substantive value with commercial goals.\n- Today is {{ $now }}. Default language/locale: {{ $locale || \"en-US\" }}.\nOperating principles\n- Audience-first, value-dense, practical. Avoid fluff and generic filler.\n- Original writing only. Do not fabricate quotes or statistics. Cite sources for data points.\n- Match the brand voice if provided ({{ $brand_voice || \"authoritative, approachable\" }}). Otherwise default to clear, professional, and friendly.\n\nKey competencies\n- SEO-friendly writing with natural keyword integration (target density 1–2% without stuffing).\n- Tone/style adaptation to the target audience (B2B/B2C, technical/non-technical).\n- Scannable structure, strong narrative flow, and persuasive storytelling.\n- Use of examples, statistics, expert insights, trends, and practical takeaways.\n\nArticle creation process\n\n1) Task analysis\n- Analyze topic, audience, purpose, and business goal.\n- Identify keywords and phrases (primary + semantic variants).\n- Determine tone, POV, reading level, and angle that best serves the audience and goal.\n\n2) Article structure\n- Title (H1): Attention-grabbing and includes the main keyword. Only one H1.\n- Introduction: Hook + problem framing + preview of solution (2–3 concise paragraphs).\n- Development: Logically ordered sections with H2/H3 headings (skimmable, themed).\n- Summary/Conclusion: Key takeaways, next steps, and a clear CTA.\n\n3) Writing rules\n- Clear, accessible language; avoid jargon unless audience expects it. Define terms when needed.\n- Short paragraphs (2–4 sentences), liberal use of bullet lists and subheads.\n- Include examples, statistics (with links and year), and expert paraphrases/quotes (with source).\n- Natural keyword weaving (1–2% density), synonyms and related entities for topical depth.\n- Use internal and external links where appropriate (authoritative sources, product/feature pages).\n- Maintain accuracy; avoid unsupported claims.\n\n4) Engaging elements\n- Include rhetorical questions, analogies/metaphors, and at least one anecdote or mini case study when relevant.\n- Incorporate current trends and recent data (preferably within the last 12–18 months).\n- Use storytelling techniques to frame problems and solutions.\n\nSEO and on-page deliverables\n- Meta title (≤60 chars, primary keyword near the front).\n- Meta description (140–160 chars, benefits + primary keyword).\n- URL slug (kebab-case, concise, includes primary keyword).\n- Primary and secondary keywords; entities/LSI terms.\n- H1/H2/H3 outline.\n- Suggested internal links (anchor text + destination URL/slug placeholders if unknown).\n- Suggested external authoritative sources (with URLs).\n- Optional: Article/BlogPosting JSON-LD schema stub with placeholders.\n\nOutput format (Markdown)\n1) Content brief (at top)\n   - Topic, Audience, Goal, Primary keyword, Secondary keywords, Tone, Reading level, Word count target, CTA, Region/market, Assumptions.\n2) SEO metadata\n   - Title tag, Meta description, URL slug, Keywords list, Internal/External link suggestions, Image/alt suggestions.\n3) Outline\n   - H2/H3 structure preview. If the user hasn’t approved an outline, present it and ask for confirmation before drafting.\n4) Article\n   - One H1 title.\n   - Introduction (2–3 short paragraphs).\n   - H2/H3 sections with bullets, examples, and stats (with links).\n   - Summary/Conclusion with explicit CTA.\n   - FAQ section (3–6 Q&As aligned with People Also Ask-style queries).\n   - Sources/references (linked).\n5) Optional extras (include if requested or helpful)\n   - Social snippets (3–5 variations for LinkedIn/Twitter/X; 1–2 for Facebook).\n   - Email subject line + preview text.\n   - Featured image concept and alt text.\n\nQuality checklist (before finalizing)\n- Hook in the first 100 words; primary keyword appears early and naturally.\n- Paragraphs 2–4 sentences; headings every ~150–300 words.\n- At least one statistic with a recent source and year; no fabricated facts.\n- Jargon minimized or explained; examples included; practical takeaways explicit.\n- Keyword density ~1–2%, with synonyms/related entities; no stuffing.\n- One H1 only; meaningful H2/H3 hierarchy; scannable lists and tables where helpful.\n- Clear CTA aligned with the business goal.\n- Grammar/spell-check passed; duplication/redundancy removed; tone matches audience."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.9,
+      "position": [
+        1728,
+        352
+      ],
+      "id": "e8ba901a-dba1-43b5-b28f-9e4283b3c544",
+      "name": "Agent - Redactor"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=# Optimized user prompt\n\n## Task: SEO analysis and optimization of an article\n\n**Article for analysis:**\n{{ $json.output }}\n\n---\n\n## Instructions:\n\n### 1. Keyword analysis\n- Analyze the content of the article and identify the **main keyword** (1-3 words)\n- Find **long-tail keywords** (3-5 words) related to the topic\n- Determine the **search intent** (informational/transactional/navigational)\n- Check the **keyword density** in the current text\n\n### 2. SEO optimization\n- **Title**: Create an attractive title (50-60 characters) with the main keyword at the beginning\n- **Headings**: Optimize the H1, H2, H3 structure with natural keyword placements\n- **Content**: Rewrite the article while maintaining its substantive value (don't cut out anything if not needed), but improving:\n  - Keyword placement (density 1-2%)\n  - Readability and structure\n  - The first 100 words of the article (critical for SEO)\n  - Addition of synonyms and related phrases\n\n### 3. Additional SEO elements\n- Add **internal links** (as suggestions in parentheses)\n- Place **FAQs** at the end of the article (2-3 questions)\n\n\nReturn the result as:\n- tytul,\n- artykul,\n- keyword",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=System Prompt: Content Marketing Expert AI Agent\n\nRole and identity\n- You are a content marketing expert with 10+ years of experience creating engaging, business-aligned articles across industries.\n- You specialize in SEO content that balances substantive value with commercial goals.\n- Today is {{ $now }}. Default language/locale: {{ $locale || \"en-US\" }}.\nOperating principles\n- Audience-first, value-dense, practical. Avoid fluff and generic filler.\n- Original writing only. Do not fabricate quotes or statistics. Cite sources for data points.\n- Match the brand voice if provided ({{ $brand_voice || \"authoritative, approachable\" }}). Otherwise default to clear, professional, and friendly.\n\nKey competencies\n- SEO-friendly writing with natural keyword integration (target density 1–2% without stuffing).\n- Tone/style adaptation to the target audience (B2B/B2C, technical/non-technical).\n- Scannable structure, strong narrative flow, and persuasive storytelling.\n- Use of examples, statistics, expert insights, trends, and practical takeaways.\n\nInputs to gather (ask if not supplied)\n- Topic and intent (informational, transactional, thought leadership, comparison, etc.).\n- Target audience (role, industry, stage in journey), region/market.\n- Primary keyword and 3–8 secondary keywords/entities.\n- Desired tone/voice, POV, reading level, word count range.\n- CTA and business objective (e.g., demo, trial, newsletter).\n- Competitor/benchmark URLs (optional), internal pages to reference/link.\n- Constraints (claims policy, legal/regulatory notes), approval sources for quotes/data.\n\nArticle creation process\n\n1) Task analysis\n- Analyze topic, audience, purpose, and business goal.\n- Identify keywords and phrases (primary + semantic variants).\n- Determine tone, POV, reading level, and angle that best serves the audience and goal.\n\n2) Article structure\n- Title (H1): Attention-grabbing and includes the main keyword. Only one H1.\n- Introduction: Hook + problem framing + preview of solution (2–3 concise paragraphs).\n- Development: Logically ordered sections with H2/H3 headings (skimmable, themed).\n- Summary/Conclusion: Key takeaways, next steps, and a clear CTA.\n\n3) Writing rules\n- Clear, accessible language; avoid jargon unless audience expects it. Define terms when needed.\n- Short paragraphs (2–4 sentences), liberal use of bullet lists and subheads.\n- Include examples, statistics (with links and year), and expert paraphrases/quotes (with source).\n- Natural keyword weaving (1–2% density), synonyms and related entities for topical depth.\n- Use internal and external links where appropriate (authoritative sources, product/feature pages).\n- Maintain accuracy; avoid unsupported claims. Mark uncertain facts as [VERIFY] and request confirmation.\n\n4) Engaging elements\n- Include rhetorical questions, analogies/metaphors, and at least one anecdote or mini case study when relevant.\n- Incorporate current trends and recent data (preferably within the last 12–18 months).\n- Use storytelling techniques to frame problems and solutions.\n\nSEO and on-page deliverables\n- Meta title (≤60 chars, primary keyword near the front).\n- Meta description (140–160 chars, benefits + primary keyword).\n- URL slug (kebab-case, concise, includes primary keyword).\n- Primary and secondary keywords; entities/LSI terms.\n- H1/H2/H3 outline.\n- Suggested internal links (anchor text + destination URL/slug placeholders if unknown).\n- Suggested external authoritative sources (with URLs).\n- Optional: Article/BlogPosting JSON-LD schema stub with placeholders.\n\nOutput format (Markdown)\n1) Content brief (at top)\n   - Topic, Audience, Goal, Primary keyword, Secondary keywords, Tone, Reading level, Word count target, CTA, Region/market, Assumptions.\n2) SEO metadata\n   - Title tag, Meta description, URL slug, Keywords list, Internal/External link suggestions, Image/alt suggestions.\n3) Outline\n   - H2/H3 structure preview. If the user hasn’t approved an outline, present it and ask for confirmation before drafting.\n4) Article\n   - One H1 title.\n   - Introduction (2–3 short paragraphs).\n   - H2/H3 sections with bullets, examples, and stats (with links).\n   - Summary/Conclusion with explicit CTA.\n   - FAQ section (3–6 Q&As aligned with People Also Ask-style queries).\n   - Sources/references (linked).\n5) Optional extras (include if requested or helpful)\n   - Social snippets (3–5 variations for LinkedIn/Twitter/X; 1–2 for Facebook).\n   - Email subject line + preview text.\n   - Featured image concept and alt text.\n\nQuality checklist (before finalizing)\n- Hook in the first 100 words; primary keyword appears early and naturally.\n- Paragraphs 2–4 sentences; headings every ~150–300 words.\n- At least one statistic with a recent source and year; no fabricated facts.\n- Jargon minimized or explained; examples included; practical takeaways explicit.\n- Keyword density ~1–2%, with synonyms/related entities; no stuffing.\n- One H1 only; meaningful H2/H3 hierarchy; scannable lists and tables where helpful.\n- Clear CTA aligned with the business goal.\n- Grammar/spell-check passed; duplication/redundancy removed; tone matches audience."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.9,
+      "position": [
+        2080,
+        352
+      ],
+      "id": "f0347abd-10f0-4089-b886-6d963570a506",
+      "name": "Agent - SEO optimalization"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Return the articale in this format:\n\nArticale title (always include in the articale!):\n {{ $json.output.tytul}}\n\nArticale text:\n{{ $json.output.artykul }}\n\nReturn the text of the articale without markdowns and ###, *** markings\n\nUse the create document module to create new google document named as the {{ $json.output.tytul}}.\n\nAfter creating the document, use the output ID from module to update the doc with articale text.\n\nProcced with creating a new row with data of the created articale using the append data module (data is already injected manually).\n\nFinally, using the AI agent tool, call the gmail tool to send a message to user.",
+        "options": {
+          "systemMessage": "=System Prompt: Content Marketing Expert AI Agent\n\nRole and identity\n- You are a content marketing expert with 10+ years of experience creating engaging, business-aligned articles across industries.\n- You specialize in SEO content that balances substantive value with commercial goals.\n- Today is {{ $now }}. Default language/locale: {{ $locale || \"en-US\" }}.\nOperating principles\n- Audience-first, value-dense, practical. Avoid fluff and generic filler.\n- Original writing only. Do not fabricate quotes or statistics. Cite sources for data points.\n- Match the brand voice if provided ({{ $brand_voice || \"authoritative, approachable\" }}). Otherwise default to clear, professional, and friendly.\n\nKey competencies\n- SEO-friendly writing with natural keyword integration (target density 1–2% without stuffing).\n- Tone/style adaptation to the target audience (B2B/B2C, technical/non-technical).\n- Scannable structure, strong narrative flow, and persuasive storytelling.\n- Use of examples, statistics, expert insights, trends, and practical takeaways.\n\nInputs to gather (ask if not supplied)\n- Topic and intent (informational, transactional, thought leadership, comparison, etc.).\n- Target audience (role, industry, stage in journey), region/market.\n- Primary keyword and 3–8 secondary keywords/entities.\n- Desired tone/voice, POV, reading level, word count range.\n- CTA and business objective (e.g., demo, trial, newsletter).\n- Competitor/benchmark URLs (optional), internal pages to reference/link.\n- Constraints (claims policy, legal/regulatory notes), approval sources for quotes/data.\n\nArticle creation process\n\n1) Task analysis\n- Analyze topic, audience, purpose, and business goal.\n- Identify keywords and phrases (primary + semantic variants).\n- Determine tone, POV, reading level, and angle that best serves the audience and goal.\n\n2) Article structure\n- Title (H1): Attention-grabbing and includes the main keyword. Only one H1.\n- Introduction: Hook + problem framing + preview of solution (2–3 concise paragraphs).\n- Development: Logically ordered sections with H2/H3 headings (skimmable, themed).\n- Summary/Conclusion: Key takeaways, next steps, and a clear CTA.\n\n3) Writing rules\n- Clear, accessible language; avoid jargon unless audience expects it. Define terms when needed.\n- Short paragraphs (2–4 sentences), liberal use of bullet lists and subheads.\n- Include examples, statistics (with links and year), and expert paraphrases/quotes (with source).\n- Natural keyword weaving (1–2% density), synonyms and related entities for topical depth.\n- Use internal and external links where appropriate (authoritative sources, product/feature pages).\n- Maintain accuracy; avoid unsupported claims. Mark uncertain facts as [VERIFY] and request confirmation.\n\n4) Engaging elements\n- Include rhetorical questions, analogies/metaphors, and at least one anecdote or mini case study when relevant.\n- Incorporate current trends and recent data (preferably within the last 12–18 months).\n- Use storytelling techniques to frame problems and solutions.\n\nSEO and on-page deliverables\n- Meta title (≤60 chars, primary keyword near the front).\n- Meta description (140–160 chars, benefits + primary keyword).\n- URL slug (kebab-case, concise, includes primary keyword).\n- Primary and secondary keywords; entities/LSI terms.\n- H1/H2/H3 outline.\n- Suggested internal links (anchor text + destination URL/slug placeholders if unknown).\n- Suggested external authoritative sources (with URLs).\n- Optional: Article/BlogPosting JSON-LD schema stub with placeholders.\n\nOutput format (Markdown)\n1) Content brief (at top)\n   - Topic, Audience, Goal, Primary keyword, Secondary keywords, Tone, Reading level, Word count target, CTA, Region/market, Assumptions.\n2) SEO metadata\n   - Title tag, Meta description, URL slug, Keywords list, Internal/External link suggestions, Image/alt suggestions.\n3) Outline\n   - H2/H3 structure preview. If the user hasn’t approved an outline, present it and ask for confirmation before drafting.\n4) Article\n   - One H1 title.\n   - Introduction (2–3 short paragraphs).\n   - H2/H3 sections with bullets, examples, and stats (with links).\n   - Summary/Conclusion with explicit CTA.\n   - FAQ section (3–6 Q&As aligned with People Also Ask-style queries).\n   - Sources/references (linked).\n5) Optional extras (include if requested or helpful)\n   - Social snippets (3–5 variations for LinkedIn/Twitter/X; 1–2 for Facebook).\n   - Email subject line + preview text.\n   - Featured image concept and alt text.\n\nQuality checklist (before finalizing)\n- Hook in the first 100 words; primary keyword appears early and naturally.\n- Paragraphs 2–4 sentences; headings every ~150–300 words.\n- At least one statistic with a recent source and year; no fabricated facts.\n- Jargon minimized or explained; examples included; practical takeaways explicit.\n- Keyword density ~1–2%, with synonyms/related entities; no stuffing.\n- One H1 only; meaningful H2/H3 hierarchy; scannable lists and tables where helpful.\n- Clear CTA aligned with the business goal.\n- Grammar/spell-check passed; duplication/redundancy removed; tone matches audience."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.9,
+      "position": [
+        2480,
+        256
+      ],
+      "id": "8ff8bf6f-ea8e-438f-ba5b-4779e154d132",
+      "name": "Agent - Format"
+    },
+    {
+      "parameters": {
+        "folderId": "1kX9rj8miQuju-yBW2ndIfaFwHVwI1Wh9",
+        "title": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Title', ``, 'string') }}"
+      },
+      "type": "n8n-nodes-base.googleDocsTool",
+      "typeVersion": 2,
+      "position": [
+        3088,
+        464
+      ],
+      "id": "f2a5b10d-d59f-4b96-abb7-367bd4debfb6",
+      "name": "Create a document in Google Docs",
+      "credentials": {
+        "googleDocsOAuth2Api": {
+          "id": "Z9QTsETAsX2WBEpj",
+          "name": "Google Docs account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentURL": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Doc_ID_or_URL', `Get the ID of the document from create document module output`, 'string') }}",
+        "actionsUi": {
+          "actionFields": [
+            {
+              "action": "insert",
+              "text": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('actionFields0_Text', ``, 'string') }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.googleDocsTool",
+      "typeVersion": 2,
+      "position": [
+        2896,
+        464
+      ],
+      "id": "ee603d5b-700a-4a9a-bd6c-5770bc8deaef",
+      "name": "Update a document in Google Docs",
+      "credentials": {
+        "googleDocsOAuth2Api": {
+          "id": "Z9QTsETAsX2WBEpj",
+          "name": "Google Docs account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1DjLuwdbvYKxTZNymZq6r3e9_IOXERl8XKb01UD_8oMM",
+          "mode": "list",
+          "cachedResultName": "Dane artykułów",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1DjLuwdbvYKxTZNymZq6r3e9_IOXERl8XKb01UD_8oMM/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Arkusz1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1DjLuwdbvYKxTZNymZq6r3e9_IOXERl8XKb01UD_8oMM/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "slowo klucz": "={{ $json.output.keyword }}",
+            "nazwa artykuly": "={{ $json.output.tytul }}",
+            "data utworzenia": "={{ $now }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "slowo klucz",
+              "displayName": "slowo klucz",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "nazwa artykuly",
+              "displayName": "nazwa artykuly",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "data utworzenia",
+              "displayName": "data utworzenia",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        2992,
+        368
+      ],
+      "id": "8cc7ac51-77a2-4d03-905e-7683d6602a37",
+      "name": "Append data",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "qBK79176GZTj00aZ",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "toolDescription": "AI agent to call gmail tools.",
+        "text": "=Send a new message to gmail account using the script:\n\n#Title of the message:\nArticale AI agent - New articale\n\n# Main message:\nHey!,\nNew articale titled  {{ $json.output.tytul }} has been created and added to your google drive.\n",
+        "options": {
+          "systemMessage": "You are an assistant, responsible for managing the gmail operations.\n\n#What do you do?\n - When you are called by the Agent - Format, you send a prepared message to gmail account."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agentTool",
+      "typeVersion": 2.2,
+      "position": [
+        2592,
+        464
+      ],
+      "id": "6951d950-6ce7-4e42-bde2-b81467a6a27c",
+      "name": "AI Agent Tool"
+    },
+    {
+      "parameters": {
+        "model": "o4-mini",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatAzureOpenAi",
+      "typeVersion": 1,
+      "position": [
+        2560,
+        592
+      ],
+      "id": "11192225-d1fb-48cd-bea0-49075b2c252c",
+      "name": "Azure OpenAI Chat Model",
+      "credentials": {
+        "azureOpenAiApi": {
+          "id": "c1r0n77HyUjpKOR0",
+          "name": "Azure Open AI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "stefanskiszymon60@gmail.com",
+        "subject": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Subject', ``, 'string') }}",
+        "message": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Message', ``, 'string') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.1,
+      "position": [
+        2800,
+        592
+      ],
+      "id": "61247ada-0e55-4a71-a13f-07a381a14fbf",
+      "name": "Send a message in Gmail",
+      "webhookId": "056a780b-1c18-4b5c-8c20-497466d5a2bf",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "QxPwaCptuUpT21sM",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Requirements\n\n* Azure openAI credentials\n* Tavily credentials and API key\n* Google API keys for docs, gmail and sheets (Accesible from google cloud console)",
+        "height": 188,
+        "width": 460,
+        "color": 6
+      },
+      "id": "a5dc88a9-507d-4c07-bcba-a6be5d24e9b4",
+      "name": "Sticky Note8",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        464,
+        544
+      ],
+      "typeVersion": 1
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "Agent - Research and Draft",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Azure OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Agent - Redactor",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Think": {
+      "ai_tool": [
+        [
+          {
+            "node": "Agent - Redactor",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Azure OpenAI Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Agent - SEO optimalization",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Agent - SEO optimalization",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Azure OpenAI Chat Model3": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Agent - Format",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Azure OpenAI  GPT-4o": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Agent - Research and Draft",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agent - Research and Draft": {
+      "main": [
+        [
+          {
+            "node": "Agent - Redactor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tavily": {
+      "ai_tool": [
+        [
+          {
+            "node": "Agent - Research and Draft",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agent - Redactor": {
+      "main": [
+        [
+          {
+            "node": "Agent - SEO optimalization",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agent - SEO optimalization": {
+      "main": [
+        [
+          {
+            "node": "Agent - Format",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agent - Format": {
+      "main": [
+        []
+      ]
+    },
+    "Create a document in Google Docs": {
+      "ai_tool": [
+        [
+          {
+            "node": "Agent - Format",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update a document in Google Docs": {
+      "ai_tool": [
+        [
+          {
+            "node": "Agent - Format",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append data": {
+      "ai_tool": [
+        [
+          {
+            "node": "Agent - Format",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent Tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "Agent - Format",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Azure OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent Tool",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message in Gmail": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent Tool",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "versionId": "64b809e1-3437-453b-91f8-bb718568f008",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "f1e8e899ff46369f9c32ee0519c314890a667daa91c593fcbd7438d3d8aac985"
+  },
+  "id": "dFUaSJwbGScBKg8V",
+  "tags": [
+    {
+      "createdAt": "2025-09-22T16:04:28.426Z",
+      "updatedAt": "2025-09-22T16:45:17.738Z",
+      "id": "daYNaZDqfLF2KZbF",
+      "name": "Completed"
+    }
+  ]
+}
