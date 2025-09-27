@@ -1,0 +1,845 @@
+{
+  "name": "Social media post generating AI",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "# Social media AI agent\n\n## This is a project of social media agent, that generates images and posts from 5 social platforms (X, Instagram, Facebook, Threads and Linkedln). It can generate up to 30 days worth of different posts with different sizes depending on platform (as well as different captions).",
+        "height": 520,
+        "width": 500,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -432,
+        -192
+      ],
+      "id": "b1ef2f82-017c-4848-a1c2-1b9051005e73",
+      "name": "Sticky Note6"
+    },
+    {
+      "parameters": {
+        "content": "# How does it work?\n\n User inputs the website name, which then Tavily gathers informations about to find out about buisnesses and services that it offers. User also can choose from 3 options, 2, 7 or 30 days of posts for all of those 5 platforms. After creating every post is then looped over into google sheet and photos to google drive (photos are linked in sheet too). Image generating happens inside of Generating image https request module, plan inside of AI agent plan and posts inside of AI agent Posts.\n\n# Requirements\n\n* Tavily intergration\n* Google sheets intergration\n* Replicate or any other image generating API\n* Azure openAI intergration (or any other model)\n\n# Disclaimer\n\nBecause of the limits of free version of replicate image models API, I couldn't make too much tests, however as far as I could it worked well. While preparing this workflow to work, make sure to use either another service that provides image generating models or get a paid version of your choosing.\n\nThis model always created posts with images, however you can change the agents instructions and add a new valuable boolean to check if user want to create an image or not.",
+        "height": 1096,
+        "width": 500
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -432,
+        320
+      ],
+      "id": "d5670cc1-7946-4a0f-a41a-af9a1c31362d",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "formTitle": "Social media post generating agent",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Enter the webpage URL of your buisness/service (without HTTPS)",
+              "placeholder": "Site URL",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Campain time (days)",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "2"
+                  },
+                  {
+                    "option": "7"
+                  },
+                  {
+                    "option": "30"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.2,
+      "position": [
+        112,
+        -32
+      ],
+      "id": "5fa034a9-8626-4c1d-bc1b-8e57ac25c8a4",
+      "name": "On form submission",
+      "webhookId": "6129fd06-9bd5-41b9-91ec-9f8b0b028c92"
+    },
+    {
+      "parameters": {
+        "model": "gpt-4o",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatAzureOpenAi",
+      "typeVersion": 1,
+      "position": [
+        416,
+        352
+      ],
+      "id": "564230e8-c9da-417b-87a4-2baff8b73019",
+      "name": "Azure OpenAI Chat Model",
+      "credentials": {
+        "azureOpenAiApi": {
+          "id": "c1r0n77HyUjpKOR0",
+          "name": "Azure Open AI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"business_overview\": {\n    \"name\": \"SkinPro\",\n    \"industry\": \"Skincare / Beauty\",\n    \"business_type\": \"B2C\",\n    \"location\": \"USA\",\n    \"main_products_services\": [\n      \"Natural face creams\",\n      \"Serums\",\n      \"Moisturizers\"\n    ]\n  },\n  \"brand_and_marketing_info\": {\n    \"brand_personality\": \"Clean, ethical, nurturing\",\n    \"primary_goal\": \"Brand awareness and community building\",\n    \"tone_of_voice\": \"Friendly and educational\"\n  },\n  \"target_audience\": {\n    \"demographics_and_interests\": \"Women aged 25–40, urban, health-conscious\",\n    \"pain_points\": [\n      \"Skin sensitivity\",\n      \"Distrust in conventional brands\"\n    ]\n  },\n  \"ideal_customer_persona\": {\n    \"name\": \"Eco-Minded Emma\",\n    \"age_and_occupation\": \"32, freelance designer\",\n    \"motivations\": \"Wants sustainable skincare she can trust\",\n    \"frustration\": \"Feels overwhelmed by misleading marketing claims\"\n  }\n}\n"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        960,
+        352
+      ],
+      "id": "a813e0a5-6e20-460f-bc0d-e4e820cbbc91",
+      "name": "Structured Output Parser1"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Input data: assume the content is in msg.payload or adjust as needed\nconst rawContent = $input.first().json.results[0].raw_content; // or wherever your text is\n\n// Remove all markdown images ![](...)\nconst cleanedText = rawContent.replace(/!\\[\\]\\((.*?)\\)/g, '').trim();\n\n// Optionally replace multiple newlines with max two newlines (cleaner)\nconst finalText = cleanedText.replace(/\\n{2,}/g, '\\n\\n');\n\n// Return the cleaned text in the output JSON\nreturn [{ json: { cleanedText: finalText } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        512,
+        -32
+      ],
+      "id": "cff6fea4-7e7a-43f2-aaf0-f5f890f9ff0f",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Create a {{ $('On form submission').item.json['Campain time (days)'] }} day plan for social media posts and make a base post that is independent from social media.\n\n\nPlease generate a  social media plan for {{ $json.output.business_overview.name }}\n\nBusiness Overview\nIndustry: {{ $json.output.business_overview.industry }}\n\nBusiness Type: {{ $json.output.business_overview.business_type }}\n\nLocation: {{ $json.output.business_overview.location }}\n\nMain Products/Services: {{ $json.output.business_overview.main_products_services }}\n\nBrand & Marketing Info\nBrand Personality: {{ $json.output.brand_and_marketing_info.brand_personality }}\n\nPrimary Goal: {{ $json.output.brand_and_marketing_info.primary_goal }}\n\nTone of Voice: {{ $json.output.brand_and_marketing_info.tone_of_voice }}\n\nTarget Audience\nDemographics & Interests: {{ $json.output.target_audience.demographics_and_interests }}\n\nPain Points: {{ $json.output.target_audience.pain_points }}\n\n🎯 Ideal Customer Persona\nName: {{ $json.output.ideal_customer_persona.name }}\n\nAge & Occupation: {{ $json.output.ideal_customer_persona.age_and_occupation }}\n\nMotivations: {{ $json.output.ideal_customer_persona.motivations }}\n\nFrustration: \n{{ $json.output.ideal_customer_persona.frustration }}\n\nTheme is Idea of the post\n\nContent stages are awerness, consideration or decision. Try to build up the stages progresively over time, 10 posts for every stage in case of 30 day campaign, if 7, make 2 days awerness, 3 days consideration and 2 days decision. The keeping the stage type is very important. Awerness takes into consideration that it doenst promote directly the product, it only gives helpful tips. \n",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=You are a social media expert. Now is {{$now}}."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        256,
+        752
+      ],
+      "id": "5c418463-874f-4151-81f0-694e6c4e9fbe",
+      "name": "AI Agent - Plan"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "[\n  {\n    \"day\": 1,\n    \"date\": \"2025-07-12\",\n    \"theme\": \"The importance of natural ingredients\",\n    \"content\": \"\",\n    \"content_stage\": \"Awareness\"\n  }\n]"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        1312,
+        352
+      ],
+      "id": "34e778ff-c387-4053-b377-fee014ae2000",
+      "name": "Structured Output Parser2"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "output",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        560,
+        752
+      ],
+      "id": "bfe43088-6e1e-43ae-b314-9e0c3ecc1c69",
+      "name": "Split Out1"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        304,
+        1024
+      ],
+      "id": "5bf2c786-635a-4f94-8f66-6583b43f38f8",
+      "name": "Loop Over Items1"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "output",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        1088,
+        800
+      ],
+      "id": "56e9054a-4ae2-46cf-8c3e-0d7098bfed77",
+      "name": "Split Out2"
+    },
+    {
+      "parameters": {
+        "options": {
+          "reset": "={{ $node['Loop Over Items2'].context[\"done\"] }}"
+        }
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        768,
+        1056
+      ],
+      "id": "bc9dc74d-4e73-4ddc-ab7c-16b10c083851",
+      "name": "Loop Over Items2"
+    },
+    {
+      "parameters": {
+        "operation": "crop",
+        "width": "={{ $('Loop Over Items2').item.json.image_resolution.width }}",
+        "height": "={{ $('Loop Over Items2').item.json.image_resolution.height }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.editImage",
+      "typeVersion": 1,
+      "position": [
+        1312,
+        992
+      ],
+      "id": "59e58d66-e271-428b-92a5-ecb5452ce968",
+      "name": "Edit Image"
+    },
+    {
+      "parameters": {
+        "content": "## Generating plans, posts and images for Facebook, Instagram, Threads, LinkedIn, X.",
+        "height": 840,
+        "width": 1624,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        64,
+        576
+      ],
+      "id": "fb40c07b-5b0b-48db-9a87-4fa1137a6c9f",
+      "name": "Sticky Note7"
+    },
+    {
+      "parameters": {
+        "content": "# Social media agent - up to 30 days of posts for different platforms at the same time",
+        "height": 400,
+        "width": 1624,
+        "color": 2
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        64,
+        -192
+      ],
+      "id": "62dd8eb1-dfa6-482e-a55f-852be7de2890",
+      "name": "Sticky Note9"
+    },
+    {
+      "parameters": {
+        "content": "## LLM model",
+        "height": 380,
+        "width": 820,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        64,
+        192
+      ],
+      "id": "242b60e4-1eee-470c-9970-4eaa9edf0c95",
+      "name": "Sticky Note10"
+    },
+    {
+      "parameters": {
+        "content": "## Structure",
+        "height": 380,
+        "width": 804,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        880,
+        192
+      ],
+      "id": "c52defd1-ca2b-4c58-935e-d6c7726c3434",
+      "name": "Sticky Note11"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1488,
+        1184
+      ],
+      "id": "b86f3450-aca0-4d6b-b25c-679f8ac7b4ac",
+      "name": "Wait",
+      "webhookId": "046292f9-888a-4ea5-8c05-d223bdd58443"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Here is content extracted from the company's website. Based on it, please generate:\n\n- Business Overview  \n- Brand & Marketing Info  \n- Target Audience  \n- Ideal Customer Persona\n\nWebsite Content:\n {{ $json.cleanedText }}\n\nOutput should be in English language.",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You are a marketing assistant trained to extract and interpret brand information from website content. Your job is to analyze the provided copy from a company’s website and generate structured marketing insights.\n\nFrom the input content, infer and write out the following:\n\n1. Business Overview  \n   - Industry  \n   - Business Type (B2B, B2C, etc.)  \n   - Location (if not available, infer primary market)  \n   - Main Products/Services  \n\n2. Brand & Marketing Info  \n   - Brand Personality (tone, vibe, style)  \n   - Primary Goal (e.g. brand awareness, sales, lead generation)  \n   - Tone of Voice (e.g. casual, authoritative)\n\n3. Target Audience  \n   - Demographics & Interests  \n   - Pain Points\n\n4. Ideal Customer Persona  \n   - Name (optional, invented is fine)  \n   - Age & Occupation (based on context)  \n   - Motivations  \n   - Frustration or “day-in-the-life” issue they want solved\n\nRespond in **clear, structured sections** using bullet points or short paragraphs. Use reasoning where needed to make logical assumptions, but avoid guessing if information is unclear or missing.\n\nYou communicate in English language.\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        976,
+        -32
+      ],
+      "id": "d5f7a0c8-f779-44a2-b928-c1eb01f39fcc",
+      "name": "AI Agent - Persona"
+    },
+    {
+      "parameters": {
+        "resource": "extract",
+        "urls": [
+          "={{ $json['Enter the webpage URL of your buisness/service (without HTTPS)'] }}"
+        ],
+        "options": {}
+      },
+      "type": "@tavily/n8n-nodes-tavily.tavily",
+      "typeVersion": 1,
+      "position": [
+        304,
+        -32
+      ],
+      "id": "57bb9907-60ef-4102-8da8-34a409e641a7",
+      "name": "Extract",
+      "credentials": {
+        "tavilyApi": {
+          "id": "0vJ4djhiIFt0Nv7K",
+          "name": "Tavily account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Please generate a  social media content for Facebook, Instagram, Threads, LinkedIn and X in English language and image prompts should be in English. For images please add the appropriate resolution and images prompts should be in English. The images should be a realistic photography without texts.\n\nDo it based on following data:\n- date: {{ $json.date }}\n- stage: {{ $json.content_stage }}\n- theme: {{ $json.theme }}\n- content: {{ $json.content }}\n\nTake the content: \"{{ $json.content }}\" as a foundation, but generate for every social media type dedicated content. Take into consedaration that every social media platform works with different content length.\n\nFor social media set original recommended image resolutions, only for flux_resolution set follwing:\n- Facebook: \n  - width: 1216\n  - height: 640\n- Instagram: \n  - width: 1088\n  - height: 1088\n- Threads: \n  - width: 1088\n  - height: 1376\n- LinkedIn: \n  - width: 1216\n  - height: 640\n- X: \n  - width: 1216\n  - height: 704\n",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=You are an expert social media strategist and content creator with extensive experience across Facebook, Instagram, Threads, X (Twitter), and LinkedIn.\n\nYou communicate in Polish language. Right now is: {{ $now }}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        768,
+        800
+      ],
+      "id": "15d66a1d-46e4-47e7-acd5-123a4bec8338",
+      "name": "Agent - Posts"
+    },
+    {
+      "parameters": {
+        "name": "={{\"flux-\" + $now + \"-\" + $('Loop Over Items2').item.json.platform + \"-\" + $('Loop Over Items2').item.json.scheduled_date}}",
+        "driveId": {
+          "__rl": true,
+          "value": "My Drive",
+          "mode": "list",
+          "cachedResultName": "My Drive",
+          "cachedResultUrl": "https://drive.google.com/drive/my-drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "1kX9rj8miQuju-yBW2ndIfaFwHVwI1Wh9",
+          "mode": "list",
+          "cachedResultName": "Folder testowy",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/1kX9rj8miQuju-yBW2ndIfaFwHVwI1Wh9"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        1488,
+        992
+      ],
+      "id": "6377ac78-7db9-4117-8b99-b3f88f82967e",
+      "name": "Upload",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "Lw6WnMEdUS3TXQ3S",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1SCee5gQjBbzFm0_FlHNNVgCyZMsHl9hTp-BlqkCMwd0",
+          "mode": "list",
+          "cachedResultName": "SocialMediaData",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1SCee5gQjBbzFm0_FlHNNVgCyZMsHl9hTp-BlqkCMwd0/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Arkusz1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1SCee5gQjBbzFm0_FlHNNVgCyZMsHl9hTp-BlqkCMwd0/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "platform": "={{ $('Split Out2').item.json.platform }}",
+            "date": "={{ $('Split Out2').item.json.scheduled_date }}",
+            "time": "={{ $('Split Out2').item.json.scheduled_time }}",
+            "posted": "Nie",
+            "post content": "={{ $('Split Out2').item.json.post }}",
+            "image prompt": "={{ $('Split Out2').item.json.image_prompt }}",
+            "image link": "={{ $json.webViewLink }}",
+            "stage": "={{ $('Split Out2').item.json.stage }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "platform",
+              "displayName": "platform",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "post content",
+              "displayName": "post content",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "image prompt",
+              "displayName": "image prompt",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "image link",
+              "displayName": "image link",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "stage",
+              "displayName": "stage",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "date",
+              "displayName": "date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "time",
+              "displayName": "time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "posted",
+              "displayName": "posted",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.6,
+      "position": [
+        1312,
+        1184
+      ],
+      "id": "d6453c73-0bdf-4637-a908-3488698b6ce1",
+      "name": "Append",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "qBK79176GZTj00aZ",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.replicate.com/v1/models/black-forest-labs/flux-dev/predictions",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"input\": {\n    \"prompt\": \"{{ $json.image_prompt }}\",\n    \"width\": \"{{ $json.flux_resolution.width }}\",\n    \"height\":\"{{ $json.flux_resolution.height}}\"\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1312,
+        800
+      ],
+      "id": "8d2c9c10-08b3-4a70-9863-ed97308c762d",
+      "name": "Image generating",
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "OeDhDCg0csFOov5m",
+          "name": "Bearer Auth account"
+        },
+        "httpBasicAuth": {
+          "id": "oSh7mNprkZgneqTO",
+          "name": "Unnamed credential"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.urls.stream }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "options": {}
+      },
+      "id": "22694936-8802-483a-bce1-c521baa33aa6",
+      "name": "Download photo",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        1488,
+        800
+      ],
+      "typeVersion": 4.2,
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "OeDhDCg0csFOov5m",
+          "name": "Bearer Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "[{\n  \"platform\": \"Facebook\",\n  \"scheduled_date\": \"2025-08-01\",\n  \"scheduled_time\": \"10:00\",\n  \"stage\": \"Awareness\",\n  \"post\": \"Our new eco-friendly skincare line is here! Perfect for sensitive skin and kind to the planet. Share it with friends who love clean beauty!\",\n  \"image_prompt\": \"Bright product image highlighting natural ingredients like aloe and chamomile in recyclable packaging\",\n  \"image_resolution\": {\n    \"width\": 1200,\n    \"height\": 630\n  },\n  \"flux_resolution\": {\n    \"width\": 1216,\n    \"height\": 640\n  }\n}]\n"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        1136,
+        352
+      ],
+      "id": "5247533f-5419-41b5-b630-077302ba4957",
+      "name": "Structured Output Parser3"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Azure OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent - Persona",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "AI Agent - Plan",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Agent - Posts",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser1": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent - Persona",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "AI Agent - Persona",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent - Plan": {
+      "main": [
+        [
+          {
+            "node": "Split Out1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser2": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent - Plan",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out1": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items1": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Agent - Posts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out2": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items2": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Image generating",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Image": {
+      "main": [
+        [
+          {
+            "node": "Upload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent - Persona": {
+      "main": [
+        [
+          {
+            "node": "AI Agent - Plan",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "Extract",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agent - Posts": {
+      "main": [
+        [
+          {
+            "node": "Split Out2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload": {
+      "main": [
+        [
+          {
+            "node": "Append",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Image generating": {
+      "main": [
+        [
+          {
+            "node": "Download photo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download photo": {
+      "main": [
+        [
+          {
+            "node": "Edit Image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser3": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Agent - Posts",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "c16eeaf8-32e8-4d0b-a33e-ab5df248bf75",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "f1e8e899ff46369f9c32ee0519c314890a667daa91c593fcbd7438d3d8aac985"
+  },
+  "id": "3aA8bWhr7nGkmrgr",
+  "tags": [
+    {
+      "createdAt": "2025-09-22T16:04:28.426Z",
+      "updatedAt": "2025-09-22T16:45:17.738Z",
+      "id": "daYNaZDqfLF2KZbF",
+      "name": "Completed"
+    }
+  ]
+}
