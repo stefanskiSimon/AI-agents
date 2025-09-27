@@ -1,5 +1,5 @@
 {
-  "name": "Agent artykułów",
+  "name": "Articale generating agent",
   "nodes": [
     {
       "parameters": {
